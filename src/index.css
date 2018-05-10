@@ -1,0 +1,31 @@
+header{
+	margin-bottom: 20px;
+}
+.image{
+	position: fixed;
+	top: 0px;
+	bottom: 0px;
+	left: 0px;
+	right: 0px;
+	background-color: #3d3d3d;
+	justify-content: center;
+	align-items: center;
+	display: flex;
+}
+.image img{
+	object-fit: contain;
+	max-width: 75%;
+	max-height: 75%;
+	box-shadow: 0px 0px 94px -16px rgba(0,0,0,0.75);
+
+}
+.image .options-container{
+	margin-top: 10px;
+}
+.image-item{
+	cursor: pointer;
+}
+
+body{
+	margin-bottom: 40px;
+}

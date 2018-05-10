@@ -1,5 +1,5 @@
 let app = angular.module("thumbdata3App", []);
-app.directive('onFileChange', $parse => {
+app.directive('onFileChange', ["$parse", $parse => {
 	return {
 		restrict: 'A',
 		link: (scope, element, attrs) => {
@@ -10,9 +10,9 @@ app.directive('onFileChange', $parse => {
 			element.on('$destroy', () => element.off());
 		}
 	};
-});
+}]);
 
-app.controller("main", $scope => {
+app.controller("main", ["$scope", $scope => {
 	$scope.images = [];
 	$scope.showimage = -1;
 
@@ -54,4 +54,4 @@ app.controller("main", $scope => {
 	$scope.show = (index) => {
 		$scope.showimage = index;
 	}
-});
+}]);
