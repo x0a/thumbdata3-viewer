@@ -60,7 +60,7 @@ html(ng-app="thumbdata3App")
 					.image-item.card(ng-click="show($index)")
 						img.card-img-top(ng-src="{{image}}")
 				.col-md-4(ng-show="images.length === 0").text-center
-					h3.text-muted No file selected
+					h3.text-muted No images.
 		.image(ng-hide="showimage === -1")
 			.text-center
 				img(ng-src="{{images[showimage]}}")
