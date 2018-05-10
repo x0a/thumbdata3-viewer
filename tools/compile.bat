@@ -1,1 +1,2 @@
-pug ../src/index.pug --out ../dist/ --watch
+@echo off
+gulp
