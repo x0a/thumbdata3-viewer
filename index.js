@@ -1,2 +1,68 @@
-let app=angular.module("thumbdata3App",[]);app.directive("onFileChange",["$parse",e=>({restrict:"A",link:(t,a,i)=>{var r=e(i.onFileChange);a.on("change",e=>{t.$apply(()=>r(t,{$event:e}))}),a.on("$destroy",()=>a.off())}})]),app.controller("main",["$scope",e=>{e.images=[],e.showimage=-1,e.openfilepicker=(()=>{document.querySelector("input").click()}),e.filepicked=(t=>{if(0===t.target.files.length)return;e.images=[];let a=t.target.files[0],i=new FileReader;i.addEventListener("loadend",()=>{let t=new Uint8Array(i.result),a=!1,r=!1;for(let i=0;i<t.length;i++)255!==t[i]||a?a&&(216===t[i]?r=i-1:217===t[i]&&e.images.push(URL.createObjectURL(new Blob([t.slice(r,i)],{type:"image/jpeg"}))),a=!1):a=!0;e.$digest()}),i.readAsArrayBuffer(a)}),e.show=(t=>{e.showimage=t})}]);
-//# sourceMappingURL=data:application/json;charset=utf8;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbImluZGV4LmpzIl0sIm5hbWVzIjpbImFwcCIsImFuZ3VsYXIiLCJtb2R1bGUiLCJkaXJlY3RpdmUiLCIkcGFyc2UiLCJyZXN0cmljdCIsImxpbmsiLCJzY29wZSIsImVsZW1lbnQiLCJhdHRycyIsIm9uQ2hhbmdlSGFuZGxlciIsIm9uRmlsZUNoYW5nZSIsIm9uIiwiZXZlbnQiLCIkYXBwbHkiLCIkZXZlbnQiLCJvZmYiLCJjb250cm9sbGVyIiwiJHNjb3BlIiwiaW1hZ2VzIiwic2hvd2ltYWdlIiwib3BlbmZpbGVwaWNrZXIiLCJkb2N1bWVudCIsInF1ZXJ5U2VsZWN0b3IiLCJjbGljayIsImZpbGVwaWNrZWQiLCJlIiwidGFyZ2V0IiwiZmlsZXMiLCJsZW5ndGgiLCJmaWxlIiwicmVhZGVyIiwiRmlsZVJlYWRlciIsImFkZEV2ZW50TGlzdGVuZXIiLCJkYXRhIiwiVWludDhBcnJheSIsInJlc3VsdCIsIm1hcmtlclN0YXJ0IiwianBlZ1N0YXJ0IiwiaSIsInB1c2giLCJVUkwiLCJjcmVhdGVPYmplY3RVUkwiLCJCbG9iIiwic2xpY2UiLCJ0eXBlIiwiJGRpZ2VzdCIsInJlYWRBc0FycmF5QnVmZmVyIiwic2hvdyIsImluZGV4Il0sIm1hcHBpbmdzIjoiQUFBQSxJQUFBQSxJQUFBQyxRQUFBQyxPQUFBLG9CQUNBRixJQUFBRyxVQUFBLGdCQUFBLFNBQUFDLEtBRUFDLFNBQUEsSUFDQUMsS0FBQSxDQUFBQyxFQUFBQyxFQUFBQyxLQUNBLElBQUFDLEVBQUFOLEVBQUFLLEVBQUFFLGNBQ0FILEVBQUFJLEdBQUEsU0FBQUMsSUFDQU4sRUFBQU8sT0FBQSxJQUFBSixFQUFBSCxHQUFBUSxPQUFBRixPQUVBTCxFQUFBSSxHQUFBLFdBQUEsSUFBQUosRUFBQVEsWUFLQWhCLElBQUFpQixXQUFBLFFBQUEsU0FBQUMsSUFDQUEsRUFBQUMsVUFDQUQsRUFBQUUsV0FBQSxFQUVBRixFQUFBRyxlQUFBLE1BQ0FDLFNBQUFDLGNBQUEsU0FBQUMsVUFHQU4sRUFBQU8sV0FBQSxDQUFBQyxJQUNBLEdBQUEsSUFBQUEsRUFBQUMsT0FBQUMsTUFBQUMsT0FBQSxPQUNBWCxFQUFBQyxVQUVBLElBQUFXLEVBQUFKLEVBQUFDLE9BQUFDLE1BQUEsR0FDQUcsRUFBQSxJQUFBQyxXQUVBRCxFQUFBRSxpQkFBQSxVQUFBLEtBQ0EsSUFBQUMsRUFBQSxJQUFBQyxXQUFBSixFQUFBSyxRQUNBQyxHQUFBLEVBQ0FDLEdBQUEsRUFFQSxJQUFBLElBQUFDLEVBQUEsRUFBQUEsRUFBQUwsRUFBQUwsT0FBQVUsSUFHQSxNQUFBTCxFQUFBSyxJQUFBRixFQUVBQSxJQUNBLE1BQUFILEVBQUFLLEdBQ0FELEVBQUFDLEVBQUEsRUFDQSxNQUFBTCxFQUFBSyxJQUNBckIsRUFBQUMsT0FBQXFCLEtBQUFDLElBQUFDLGdCQUFBLElBQUFDLE1BQUFULEVBQUFVLE1BQUFOLEVBQUFDLEtBQUFNLEtBQUEsaUJBRUFSLEdBQUEsR0FQQUEsR0FBQSxFQVVBbkIsRUFBQTRCLFlBR0FmLEVBQUFnQixrQkFBQWpCLEtBRUFaLEVBQUE4QixLQUFBLENBQUFDLElBQ0EvQixFQUFBRSxVQUFBNkIiLCJmaWxlIjoiaW5kZXguanMiLCJzb3VyY2VzQ29udGVudCI6WyJsZXQgYXBwID0gYW5ndWxhci5tb2R1bGUoXCJ0aHVtYmRhdGEzQXBwXCIsIFtdKTtcclxuYXBwLmRpcmVjdGl2ZSgnb25GaWxlQ2hhbmdlJywgW1wiJHBhcnNlXCIsICRwYXJzZSA9PiB7XHJcblx0cmV0dXJuIHtcclxuXHRcdHJlc3RyaWN0OiAnQScsXHJcblx0XHRsaW5rOiAoc2NvcGUsIGVsZW1lbnQsIGF0dHJzKSA9PiB7XHJcblx0XHRcdHZhciBvbkNoYW5nZUhhbmRsZXIgPSAkcGFyc2UoYXR0cnMub25GaWxlQ2hhbmdlKTtcclxuXHRcdFx0ZWxlbWVudC5vbignY2hhbmdlJywgZXZlbnQgPT4ge1xyXG5cdFx0XHRcdHNjb3BlLiRhcHBseSgoKSA9PiBvbkNoYW5nZUhhbmRsZXIoc2NvcGUsIHskZXZlbnQ6ZXZlbnR9KSlcclxuXHRcdFx0fSk7XHJcblx0XHRcdGVsZW1lbnQub24oJyRkZXN0cm95JywgKCkgPT4gZWxlbWVudC5vZmYoKSk7XHJcblx0XHR9XHJcblx0fTtcclxufV0pO1xyXG5cclxuYXBwLmNvbnRyb2xsZXIoXCJtYWluXCIsIFtcIiRzY29wZVwiLCAkc2NvcGUgPT4ge1xyXG5cdCRzY29wZS5pbWFnZXMgPSBbXTtcclxuXHQkc2NvcGUuc2hvd2ltYWdlID0gLTE7XHJcblxyXG5cdCRzY29wZS5vcGVuZmlsZXBpY2tlciA9ICgpID0+IHtcclxuXHRcdGRvY3VtZW50LnF1ZXJ5U2VsZWN0b3IoXCJpbnB1dFwiKS5jbGljaygpO1xyXG5cdH1cclxuXHJcblx0JHNjb3BlLmZpbGVwaWNrZWQgPSAoZSkgPT4ge1xyXG5cdFx0aWYoZS50YXJnZXQuZmlsZXMubGVuZ3RoID09PSAwKSByZXR1cm47XHJcblx0XHQkc2NvcGUuaW1hZ2VzID0gW107XHJcblxyXG5cdFx0bGV0IGZpbGUgPSBlLnRhcmdldC5maWxlc1swXTtcclxuXHRcdGxldCByZWFkZXIgPSBuZXcgRmlsZVJlYWRlcigpO1xyXG5cclxuXHRcdHJlYWRlci5hZGRFdmVudExpc3RlbmVyKFwibG9hZGVuZFwiLCAoKSA9PiB7XHJcblx0XHRcdGxldCBkYXRhID0gbmV3IFVpbnQ4QXJyYXkocmVhZGVyLnJlc3VsdCk7XHJcblx0XHRcdGxldCBtYXJrZXJTdGFydCA9IGZhbHNlO1xyXG5cdFx0XHRsZXQganBlZ1N0YXJ0ID0gZmFsc2U7XHJcblxyXG5cdFx0XHRmb3IobGV0IGkgPSAwOyBpIDwgZGF0YS5sZW5ndGg7IGkrKyl7XHJcblx0XHRcdFx0Ly8gXFx4ZmZcXHhkOCBtZWFucyB0aGUgc3RhcnQgb2YgYSBqcGVnXHJcblx0XHRcdFx0Ly8gXFx4ZmZcXHhkOSBtZWFucyB0aGUgZW5kIG9mIGEganBlZ1xyXG5cdFx0XHRcdGlmKGRhdGFbaV0gPT09IDB4ZmYgJiYgIW1hcmtlclN0YXJ0KXtcclxuXHRcdFx0XHRcdG1hcmtlclN0YXJ0ID0gdHJ1ZTtcclxuXHRcdFx0XHR9ZWxzZSBpZihtYXJrZXJTdGFydCl7XHJcblx0XHRcdFx0XHRpZihkYXRhW2ldID09PSAweGQ4KVxyXG5cdFx0XHRcdFx0XHRqcGVnU3RhcnQgPSBpIC0gMTtcclxuXHRcdFx0XHRcdGVsc2UgaWYoZGF0YVtpXSA9PT0gMHhkOSlcclxuXHRcdFx0XHRcdFx0JHNjb3BlLmltYWdlcy5wdXNoKFVSTC5jcmVhdGVPYmplY3RVUkwobmV3IEJsb2IoW2RhdGEuc2xpY2UoanBlZ1N0YXJ0LCBpKV0sIHt0eXBlOiBcImltYWdlL2pwZWdcIn0pKSk7XHJcblx0XHRcdFx0XHRcclxuXHRcdFx0XHRcdG1hcmtlclN0YXJ0ID0gZmFsc2U7XHJcblx0XHRcdFx0fVxyXG5cdFx0XHR9XHJcblx0XHRcdCRzY29wZS4kZGlnZXN0KCk7XHJcblx0XHR9KTtcclxuXHJcblx0XHRyZWFkZXIucmVhZEFzQXJyYXlCdWZmZXIoZmlsZSlcclxuXHR9XHJcblx0JHNjb3BlLnNob3cgPSAoaW5kZXgpID0+IHtcclxuXHRcdCRzY29wZS5zaG93aW1hZ2UgPSBpbmRleDtcclxuXHR9XHJcbn1dKTsiXX0=
+((window, document, console) => {
+    window.addEventListener("DOMContentLoaded", () => {
+        let DOM = {
+            fileOpen: document.querySelector("#filepickerOpen"),
+            filePicker: document.querySelector("#filepicker"),
+            imageContainer: document.querySelector("#imageContainer"),
+            emptyText: document.querySelector("#emptyText"),
+            imageTemplate: document.querySelector("#imageTemplate"),
+            imageViewer: document.querySelector(".image-viewer"),
+            imageViewerMain: document.querySelector(".image-viewer img"),
+            closeButton: document.querySelector("#closeButton"),
+        };
+        let updateList = (images) => {
+            let children = DOM.imageContainer.querySelectorAll(".col-md-3:not(.d-none)");
+            children.forEach(child => DOM.imageContainer.removeChild(child));
+            if (images.length === 0) {
+                DOM.emptyText.classList.remove("d-none");
+            }
+            else {
+                DOM.emptyText.classList.add("d-none");
+                for (let i = 0; i < images.length; i++) {
+                    let imageChild = DOM.imageTemplate.cloneNode(true);
+                    let imagePreview = imageChild.querySelector("img");
+                    imageChild.classList.remove("d-none");
+                    imagePreview.src = images[i];
+                    imageChild.addEventListener("click", () => {
+                        DOM.imageViewerMain.src = images[i];
+                        DOM.imageViewer.classList.remove("d-none");
+                    });
+                    DOM.imageContainer.appendChild(imageChild);
+                }
+            }
+        };
+        DOM.filePicker.addEventListener("change", (event) => {
+            let target = event.target;
+            if (target.files.length === 0)
+                return;
+            let file = target.files[0];
+            let reader = new FileReader();
+            reader.addEventListener("loadend", () => {
+                let data = new Uint8Array(reader.result);
+                let markerStart = false;
+                let jpegStart = 0;
+                let images = [];
+                for (let i = 0; i < data.length; i++) {
+                    if (data[i] === 0xff && !markerStart) {
+                        markerStart = true;
+                    }
+                    else if (markerStart) {
+                        if (data[i] === 0xd8)
+                            jpegStart = i - 1;
+                        else if (data[i] === 0xd9)
+                            images.push(URL.createObjectURL(new Blob([data.slice(jpegStart, i)], { type: "image/jpeg" })));
+                        markerStart = false;
+                    }
+                }
+                updateList(images);
+            });
+            reader.readAsArrayBuffer(file);
+        });
+        DOM.fileOpen.addEventListener("click", () => {
+            DOM.filePicker.click();
+        });
+        DOM.closeButton.addEventListener("click", () => {
+            DOM.imageViewer.classList.add("d-none");
+        });
+    });
+})(window, document, console);
