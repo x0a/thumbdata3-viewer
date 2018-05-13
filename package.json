@@ -1,0 +1,36 @@
+{
+  "name": "thumbdata3-viewer",
+  "version": "1.0.0",
+  "description": "Thumbdata3 viewer - Embedded JPEG extractor",
+  "main": "\"\"",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/x0a/thumbdata3-viewer.git"
+  },
+  "keywords": [
+    "thumbdata3",
+    "jpeg",
+    "jpg",
+    "extractor",
+    "embedded"
+  ],
+  "author": "x0a",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/x0a/thumbdata3-viewer/issues"
+  },
+  "homepage": "https://github.com/x0a/thumbdata3-viewer#readme",
+  "devDependencies": {
+    "gulp": "^4.0.0",
+    "gulp-clean-css": "^3.9.4",
+    "gulp-concat": "^2.6.1",
+    "gulp-pug": "^4.0.1",
+    "gulp-sourcemaps": "^2.6.4",
+    "gulp-typescript": "^4.0.2",
+    "gulp-uglify-es": "^1.0.1",
+    "typescript": "^2.8.3"
+  }
+}
