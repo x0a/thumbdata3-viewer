@@ -29,7 +29,7 @@ gulp.task("js", () => {
 	.pipe(tsProject())
 	.pipe(concat("index.js"))
 	.pipe(minify())
-	.pipe(sourcemaps.write())
+	.pipe(sourcemaps.write({includeContent: false, sourceRoot: "https://raw.githubusercontent.com/x0a/thumbdata3-viewer/master/src/"}))
 	.pipe(gulp.dest("dist/"))
 })
 gulp.task("update", (done) => {
