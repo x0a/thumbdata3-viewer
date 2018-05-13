@@ -2,8 +2,8 @@
   "name": "thumbdata3-viewer",
   "version": "1.0.0",
   "description": "Thumbdata3 viewer - Embedded JPEG extractor",
-  "main": "gulp",
   "scripts": {
+    "start": "gulp",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
