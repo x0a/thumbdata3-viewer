@@ -3,9 +3,8 @@ html(ng-app="thumbdata3App")
 	head
 		title Online Thumbdata3 Viewer
 		link(rel="stylesheet", href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css", integrity="sha384-WskhaSGFgHYWDcbwN70/dfYBj47jz9qbsMId/iRN3ewGhXQFZCSftd1LZCfmhktB", crossorigin="anonymous")
-		link(rel="stylesheet", href="https://use.fontawesome.com/releases/v5.0.12/css/all.css", integrity="sha384-G0fIWCsCzJIMAVNQPfjH08cyYaUtMwjJwqiRKxxE/rx96Uroj1BtIQ6MLJuheaO9", crossorigin="anonymous")
+		link(rel="stylesheet", href="https://use.fontawesome.com/releases/v5.0.12/css/all.css", integrity="sha384-G0fIWCsCzJIMAVNQPfjH08cyYaUtMwjJwqiRKxxE/rx96Uroj1BtIQ6MLJuheaO9", crossorigin="anonymous", async)
 		link(rel="stylesheet", href="index.css")
-		script(src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.6.10/angular.min.js")
 		meta(name="viewport", content="width=device-width, initial-scale=1, shrink-to-fit=no")
 		script(src="index.js")
 
@@ -23,21 +22,22 @@ html(ng-app="thumbdata3App")
 			.jumbotron
 				.display-3 Thumbdata3 Viewer
 				.lead Embedded JPEG extractor
-				.my-4 This is a fully client-side JPEG extractor. It works by finding JPEG-markers in files, and can theoretically be used to extract JPEGs from any non-encrypted file, including other JPEGs.
+				.my-4 This is a fully client-side JPEG extractor.
+					| It works by finding JPEG-markers in files, and can theoretically be used to extract JPEGs from any non-encrypted file, including other JPEGs.
 				.lead
-					button.btn.btn-primary.btn-lg(type="button", ng-click="openfilepicker()") 
+					button.btn.btn-primary.btn-lg(type="button", id="filepickerOpen") 
 						i.far.fa-folder-open
 						|  Select file
-					input(type="file", on-file-change="filepicked($event)").d-none
+					input(type="file", id="filepicker").d-none
 			
-			.row.justify-content-md-center
-				.col-md-3(ng-repeat="image in images")
-					.image-item.card(ng-click="show($index)")
-						img.card-img-top(ng-src="{{image}}")
-				.col-md-4(ng-show="images.length === 0").text-center
+			.row.justify-content-md-center(id="imageContainer")
+				.col-md-3(id="imageTemplate").d-none
+					.image-item.card
+						img.card-img-top
+				.col-md-4(id="emptyText").text-center
 					h3.text-muted No images.
-		.image(ng-hide="showimage === -1")
-			.text-center
-				img(ng-src="{{images[showimage]}}")
+		.image-viewer.d-none
+			.img-container.text-center
+				img(src="")
 				.options-container
-					button.btn.btn-secondary(type="button", ng-click="showimage = -1") Close
+					button.btn.btn-secondary(type="button", id="closeButton") Close
