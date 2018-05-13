@@ -1,26 +1,29 @@
 header{
 	margin-bottom: 20px;
 }
-.image{
+.image-viewer{
 	position: fixed;
 	top: 0px;
-	bottom: 0px;
 	left: 0px;
-	right: 0px;
+	width: 100vw;
+	height: 100vh;
 	background-color: #3d3d3d;
 	justify-content: center;
 	align-items: center;
 	display: flex;
 }
-.image img{
-	object-fit: contain;
-	max-width: 75%;
-	max-height: 75%;
-	box-shadow: 0px 0px 94px -16px rgba(0,0,0,0.75);
 
+.image-viewer .img-container img{
+	object-fit: contain;
+	max-height: calc(90vh - 48px);
+	max-width: 90vw;
 }
-.image .options-container{
-	margin-top: 10px;
+
+.image-viewer .options-container{
+	padding-top: 10px;
+}
+.image-viewer .img-container img{
+	box-shadow: 0px 0px 94px -16px rgba(0,0,0,0.75);
 }
 .image-item{
 	cursor: pointer;
