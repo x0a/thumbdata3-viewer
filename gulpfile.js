@@ -5,8 +5,8 @@ let concat = require("gulp-concat");
 let minify = require("gulp-uglify-es").default;
 let ts = require("gulp-typescript");
 let sourcemaps = require("gulp-sourcemaps");
-
 let tsProject = ts.createProject("tsconfig.json");
+var exec = require('child_process').exec;
 
 gulp.task("minify-css", () => {
 	return gulp.src("src/*.css")
@@ -21,9 +21,17 @@ gulp.task("pug", () => {
 })
 
 gulp.task("js", () => {
-	return tsProject.src()
+	return gulp.src("src/*.ts")
+	.pipe(sourcemaps.init())
 	.pipe(tsProject())
-	.js.pipe(gulp.dest("dist/"))
+	.pipe(concat("index.js"))
+	.pipe(minify())
+	.pipe(sourcemaps.write())
+	.pipe(gulp.dest("dist/"))
 })
-
+gulp.task("update", (done) => {
+	exec("git subtree push --prefix dist origin gh-pages", (err, stdout, stderr) => {
+		done(err);
+	})
+})
 gulp.task("default", gulp.parallel("minify-css", "pug", "js"))
