@@ -2,7 +2,7 @@
   "name": "thumbdata3-viewer",
   "version": "1.0.0",
   "description": "Thumbdata3 viewer - Embedded JPEG extractor",
-  "main": "\"\"",
+  "main": "gulp",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
