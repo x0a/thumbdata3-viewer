@@ -22,6 +22,8 @@
 
 ((window: Window, document: Document, console: Console) => {
 
+	const READ_BUFFER = 5000000;
+
 	interface DOMObject {
 		fileOpen: HTMLButtonElement;
 		filePicker: HTMLInputElement;
@@ -35,11 +37,14 @@
 		progress: HTMLDivElement;
 	}
 
-	const READ_BUFFER = 5000000;
-
 	class PromiseReader {
+		/*
+			Replaces event-based FileReader with promise-based FileReader
+		*/
+
 		fileReader: FileReader;
 		complete: any;
+
 		constructor() {
 			this.fileReader = new FileReader();
 			this.fileReader.addEventListener("loadend", () => {
@@ -62,7 +67,8 @@
 		imagePoints: Array<Array<number>>;
 		markerStart: boolean;
 		jpegStart: number;
-		lastPosition: number;
+		readStartPos: number;
+		nextPosition: number;
 		progress: any;
 		done: any;
 
@@ -72,27 +78,29 @@
 			this.imagePoints = [];
 			this.markerStart = false;
 			this.jpegStart = 0;
-			this.lastPosition = 0;
+			this.readStartPos = 0;
 
 			this.fileReader.addEventListener("loadend", () => {
 				let markerStart = this.markerStart;
 				let jpegStart = this.jpegStart;
 				let data: Uint8Array = new Uint8Array(<ArrayBuffer>this.fileReader.result);
+
 				for (let i = 0; i < data.length; i++) {
 					if (data[i] === 0xff && !markerStart) {
 						markerStart = true;
 					} else if (markerStart) {
 						if (data[i] === 0xd8)
-							jpegStart = i - 1 + this.lastPosition;
+							jpegStart = i - 1 + this.readStartPos;
 						else if (data[i] === 0xd9)
-							this.imagePoints.push([jpegStart, i + this.lastPosition]);
+							this.imagePoints.push([jpegStart, i + this.readStartPos]);
 
 						markerStart = false;
 					}
 				}
+
 				this.markerStart = markerStart;
 				this.jpegStart = jpegStart;
-				this.lastPosition += READ_BUFFER;
+				this.readStartPos = this.nextPosition;
 
 				let chunkProg = this.readNextChunk();
 
@@ -105,15 +113,16 @@
 		}
 
 		readNextChunk() {
-			const wouldExceed = this.lastPosition + READ_BUFFER > this.file.size
-			if (this.lastPosition > this.file.size) {
+			if (this.readStartPos > this.file.size) {
 				return false;
 			} else {
-				const nextEnd = wouldExceed ? undefined : READ_BUFFER + this.lastPosition;
-				const nextSlice = this.file.slice(this.lastPosition, nextEnd);
+				this.nextPosition = this.readStartPos + READ_BUFFER;
+
+				const readTo = this.nextPosition > this.file.size ? undefined : this.nextPosition;
+				const nextSlice = this.file.slice(this.readStartPos, readTo);
 
 				this.fileReader.readAsArrayBuffer(nextSlice);
-				return (this.lastPosition / this.file.size) * 100;
+				return (this.readStartPos / this.file.size) * 100;
 			}
 		}
 
@@ -125,16 +134,17 @@
 		}
 
 		async extractImages(points: Array<Array<number>>) {
-			let sliceReader = new PromiseReader();
+			let extractor = new PromiseReader();
 			let images = [];
 
 			for (let i = 0; i < points.length; i++) {
-				this.progress(i / points.length * 100);
-				let point = points[i];
-				let fileSlice = this.file.slice(point[0], point[1]);
-				let buff = new Uint8Array(await sliceReader.readAsArrayBuffer(fileSlice));
+				let [readStart, readEnd] = points[i];
+				let fileSlice = this.file.slice(readStart, readEnd);
+				let buffer = new Uint8Array(await extractor.readAsArrayBuffer(fileSlice));
 
-				images.push(URL.createObjectURL(new Blob([buff], { type: "image/jpeg" })))
+				images.push(URL.createObjectURL(new Blob([buffer], { type: "image/jpeg" })))
+
+				this.progress((i / points.length) * 100);
 			}
 
 			return images;
@@ -155,10 +165,12 @@
 			progressContainer: document.querySelector(".progress"),
 			progress: document.querySelector(".progress-bar")
 		}
+
 		let clearList = () => {
 			let children: NodeListOf<HTMLDivElement> = DOM.imageContainer.querySelectorAll(".col-md-3:not(.d-none)");
 			children.forEach(child => DOM.imageContainer.removeChild(child))
 		}
+
 		let updateList = (images: string[]) => {
 			clearList();
 
@@ -167,7 +179,7 @@
 			} else {
 				DOM.emptyText.classList.add("d-none");
 
-				for (let i: number = 0; i < images.length; i++) {
+				for (let i = 0; i < images.length; i++) {
 					let imageChild = <HTMLDivElement>DOM.imageTemplate.cloneNode(true);
 					let imagePreview: HTMLImageElement = imageChild.querySelector("img");
 
@@ -196,6 +208,7 @@
 			DOM.fileOpen.classList.add("d-none");
 
 			clearList();
+			
 			let thumbReader = new ThumbReader(file);
 
 			thumbReader.progress = (progress: number) => {
