@@ -28,6 +28,10 @@ header{
 .image-item{
 	cursor: pointer;
 }
+.progress{
+	height: 40px;
+	font-size: 1.25rem;
+}
 
 body{
 	margin-bottom: 40px;
