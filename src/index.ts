@@ -83,7 +83,7 @@
 			this.fileReader.addEventListener("loadend", () => {
 				let markerStart = this.markerStart;
 				let jpegStart = this.jpegStart;
-				let data: Uint8Array = new Uint8Array(<ArrayBuffer>this.fileReader.result);
+				const data: Uint8Array = new Uint8Array(<ArrayBuffer>this.fileReader.result);
 
 				for (let i = 0; i < data.length; i++) {
 					if (data[i] === 0xff && !markerStart) {
@@ -116,12 +116,13 @@
 			if (this.readStartPos > this.file.size) {
 				return false;
 			} else {
-				this.nextPosition = this.readStartPos + READ_BUFFER;
-
-				const readTo = this.nextPosition > this.file.size ? undefined : this.nextPosition;
+				const nextPosition = this.readStartPos + READ_BUFFER;
+				const readTo = nextPosition > this.file.size ? undefined : nextPosition;
 				const nextSlice = this.file.slice(this.readStartPos, readTo);
 
+				this.nextPosition = nextPosition;
 				this.fileReader.readAsArrayBuffer(nextSlice);
+
 				return (this.readStartPos / this.file.size) * 100;
 			}
 		}
@@ -138,9 +139,9 @@
 			let images = [];
 
 			for (let i = 0; i < points.length; i++) {
-				let [readStart, readEnd] = points[i];
-				let fileSlice = this.file.slice(readStart, readEnd);
-				let buffer = new Uint8Array(await extractor.readAsArrayBuffer(fileSlice));
+				const [readStart, readEnd] = points[i];
+				const fileSlice = this.file.slice(readStart, readEnd);
+				const buffer = new Uint8Array(await extractor.readAsArrayBuffer(fileSlice));
 
 				images.push(URL.createObjectURL(new Blob([buffer], { type: "image/jpeg" })))
 
