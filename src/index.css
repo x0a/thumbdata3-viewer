@@ -29,10 +29,15 @@ header{
 	cursor: pointer;
 }
 .progress{
-	height: 40px;
+	height: 3rem;
 	font-size: 1.25rem;
+	background-color: ghostwhite;
+	border: 1px solid #dee2e6;
 }
 
+.progress-bar{
+	text-shadow: black 1px 1px 4px;
+}
 body{
 	margin-bottom: 40px;
 }

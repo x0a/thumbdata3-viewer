@@ -22,7 +22,7 @@
 
 ((window: Window, document: Document, console: Console) => {
 
-	const READ_BUFFER = 5000000;
+	
 
 	interface DOMObject {
 		fileOpen: HTMLButtonElement;
@@ -37,120 +37,6 @@
 		progress: HTMLDivElement;
 	}
 
-	class PromiseReader {
-		/*
-			Replaces event-based FileReader with promise-based FileReader
-		*/
-
-		fileReader: FileReader;
-		complete: any;
-
-		constructor() {
-			this.fileReader = new FileReader();
-			this.fileReader.addEventListener("loadend", () => {
-				if (this.complete) {
-					this.complete(this.fileReader.result);
-				}
-			})
-		}
-		readAsArrayBuffer(blob: Blob): Promise<ArrayBuffer> {
-			return new Promise(resolve => {
-				this.complete = resolve;
-				this.fileReader.readAsArrayBuffer(blob);
-			})
-		}
-	}
-
-	class ThumbReader {
-		file: File;
-		fileReader: FileReader;
-		imagePoints: Array<Array<number>>;
-		markerStart: boolean;
-		jpegStart: number;
-		readStartPos: number;
-		nextPosition: number;
-		progress: any;
-		done: any;
-
-		constructor(file: File) {
-			this.file = file;
-			this.fileReader = new FileReader();
-			this.imagePoints = [];
-			this.markerStart = false;
-			this.jpegStart = 0;
-			this.readStartPos = 0;
-
-			this.fileReader.addEventListener("loadend", () => {
-				let markerStart = this.markerStart;
-				let jpegStart = this.jpegStart;
-				const data: Uint8Array = new Uint8Array(<ArrayBuffer>this.fileReader.result);
-
-				for (let i = 0; i < data.length; i++) {
-					if (data[i] === 0xff && !markerStart) {
-						markerStart = true;
-					} else if (markerStart) {
-						if (data[i] === 0xd8)
-							jpegStart = i - 1 + this.readStartPos;
-						else if (data[i] === 0xd9)
-							this.imagePoints.push([jpegStart, i + this.readStartPos]);
-
-						markerStart = false;
-					}
-				}
-
-				this.markerStart = markerStart;
-				this.jpegStart = jpegStart;
-				this.readStartPos = this.nextPosition;
-
-				let chunkProg = this.readNextChunk();
-
-				if (chunkProg === false) {
-					this.done(this.imagePoints);
-				} else {
-					this.progress(chunkProg);
-				}
-			});
-		}
-
-		readNextChunk() {
-			if (this.readStartPos > this.file.size) {
-				return false;
-			} else {
-				const nextPosition = this.readStartPos + READ_BUFFER;
-				const readTo = nextPosition > this.file.size ? undefined : nextPosition;
-				const nextSlice = this.file.slice(this.readStartPos, readTo);
-
-				this.nextPosition = nextPosition;
-				this.fileReader.readAsArrayBuffer(nextSlice);
-
-				return (this.readStartPos / this.file.size) * 100;
-			}
-		}
-
-		extractPoints(): Promise<Array<Array<number>>> {
-			return new Promise(resolve => {
-				this.done = resolve;
-				this.readNextChunk();
-			})
-		}
-
-		async extractImages(points: Array<Array<number>>) {
-			let extractor = new PromiseReader();
-			let images = [];
-
-			for (let i = 0; i < points.length; i++) {
-				const [readStart, readEnd] = points[i];
-				const fileSlice = this.file.slice(readStart, readEnd);
-				const buffer = new Uint8Array(await extractor.readAsArrayBuffer(fileSlice));
-
-				images.push(URL.createObjectURL(new Blob([buffer], { type: "image/jpeg" })))
-
-				this.progress((i / points.length) * 100);
-			}
-
-			return images;
-		}
-	}
 
 	window.addEventListener("DOMContentLoaded", () => {
 
@@ -210,23 +96,22 @@
 
 			clearList();
 			
-			let thumbReader = new ThumbReader(file);
-
-			thumbReader.progress = (progress: number) => {
-				DOM.progress.style.width = progress + "%";
-			}
-
-			thumbReader.extractPoints()
-				.then(imagePoints => {
-					DOM.progress.textContent = "Extracting..";
-					return thumbReader.extractImages(imagePoints)
-				})
-				.then(images => updateList(images))
-				.then(() => {
+			let worker = new Worker("ThumbExtractor.js");
+			worker.addEventListener("message", msg => {
+				const data = msg.data;
+				console.log(data);
+				if(data.status){
+					DOM.progress.textContent = data.status;
+				}else if(data.progress){
+					DOM.progress.style.width = data.progress + "%";
+				}else if(data.images){
 					DOM.progressContainer.classList.add("d-none");
 					DOM.fileOpen.classList.remove("d-none");
 					DOM.filePicker.value = null;
-				});
+					updateList(data.images)
+				}
+			})
+			worker.postMessage({init: file});
 		})
 
 		DOM.fileOpen.addEventListener("click", () => {
