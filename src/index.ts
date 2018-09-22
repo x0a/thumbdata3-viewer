@@ -96,21 +96,6 @@
 
 			clearList();
 
-			let worker = new Worker("ThumbExtractor.js");
-			worker.addEventListener("message", msg => {
-				const data = msg.data;
-
-				if (data.status) {
-					DOM.progress.textContent = data.status;
-				} else if (data.progress) {
-					DOM.progress.style.width = data.progress + "%";
-				} else if (data.images) {
-					DOM.progressContainer.classList.add("d-none");
-					DOM.fileOpen.classList.remove("d-none");
-					DOM.filePicker.value = null;
-					updateList(data.images)
-				}
-			})
 			worker.postMessage({ init: file });
 		})
 
@@ -121,7 +106,23 @@
 		DOM.closeButton.addEventListener("click", () => {
 			DOM.imageViewer.classList.add("d-none");
 		})
+		
+		let worker = new Worker("ThumbExtractor.js");
+			
+		worker.addEventListener("message", msg => {
+			const data = msg.data;
 
+			if (data.status) {
+				DOM.progress.textContent = data.status;
+			} else if (data.progress) {
+				DOM.progress.style.width = data.progress + "%";
+			} else if (data.images) {
+				DOM.progressContainer.classList.add("d-none");
+				DOM.fileOpen.classList.remove("d-none");
+				DOM.filePicker.value = null;
+				updateList(data.images)
+			}
+		})
 
 	})
 })(window, document, console)
