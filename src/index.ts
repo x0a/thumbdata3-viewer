@@ -108,14 +108,20 @@
 		})
 		
 		let worker = new Worker("ThumbExtractor.js");
-			
+		let lastUpdate = Date.now();
+
 		worker.addEventListener("message", msg => {
 			const data = msg.data;
 
 			if (data.status) {
 				DOM.progress.textContent = data.status;
 			} else if (data.progress) {
-				DOM.progress.style.width = data.progress + "%";
+				let time = Date.now();
+
+				if(time - lastUpdate > 200){
+					DOM.progress.style.width = data.progress + "%";
+					lastUpdate = time;
+				}
 			} else if (data.images) {
 				DOM.progressContainer.classList.add("d-none");
 				DOM.fileOpen.classList.remove("d-none");
