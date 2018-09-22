@@ -22,7 +22,7 @@
 
 ((window: Window, document: Document, console: Console) => {
 
-	
+
 
 	interface DOMObject {
 		fileOpen: HTMLButtonElement;
@@ -95,23 +95,23 @@
 			DOM.fileOpen.classList.add("d-none");
 
 			clearList();
-			
+
 			let worker = new Worker("ThumbExtractor.js");
 			worker.addEventListener("message", msg => {
 				const data = msg.data;
-				console.log(data);
-				if(data.status){
+
+				if (data.status) {
 					DOM.progress.textContent = data.status;
-				}else if(data.progress){
+				} else if (data.progress) {
 					DOM.progress.style.width = data.progress + "%";
-				}else if(data.images){
+				} else if (data.images) {
 					DOM.progressContainer.classList.add("d-none");
 					DOM.fileOpen.classList.remove("d-none");
 					DOM.filePicker.value = null;
 					updateList(data.images)
 				}
 			})
-			worker.postMessage({init: file});
+			worker.postMessage({ init: file });
 		})
 
 		DOM.fileOpen.addEventListener("click", () => {
