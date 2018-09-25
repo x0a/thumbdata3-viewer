@@ -21,7 +21,7 @@
 */
 
 ((self: any) => {
-    const READ_BUFFER = 5000000;
+    const READ_BUFFER = 5242880; // 5 MB
 
     class PromiseReader {
 		/*
@@ -58,6 +58,8 @@
         progress: any;
         done: any;
         cancelProcess: boolean;
+        scanStart: boolean;
+        scanHeader: Array<number>;
 
         constructor(file: File) {
             this.file = file;
@@ -66,43 +68,76 @@
             this.markerStart = false;
             this.jpegStart = 0;
             this.readStartPos = 0;
+            this.scanStart = false;
+            this.scanHeader = [];
             this.cancelProcess = false;
 
             this.fileReader.addEventListener("loadend", () => {
                 let markerStart = this.markerStart;
                 let jpegStart = this.jpegStart;
+                let scanStart = this.scanStart;
+
                 const data: Uint8Array = new Uint8Array(<ArrayBuffer>this.fileReader.result);
 
                 for (let i = 0; i < data.length; i++) {
-                    if (data[i] === 0xff && !markerStart) {
-                        markerStart = true;
-                    } else if (markerStart) {
-                        if (data[i] === 0xd8)
-                            jpegStart = i - 1 + this.readStartPos;
-                        else if (data[i] === 0xd9)
-                            this.imagePoints.push([jpegStart, i + this.readStartPos]);
+                    const byte = data[i];
 
+                    if (!markerStart) {
+                        if (byte === 0xff) {
+                            markerStart = true;
+                        } else if (scanStart) {
+                            this.scanHeader.push(byte);
+                        }
+                    } else {
+                        if (byte === 0xd8) {
+                            jpegStart = i - 1 + this.readStartPos;
+                            scanStart = false;
+                            this.scanHeader = [];
+                        } else if (byte === 0xc0 || byte === 0xc2) { // start of image header, c0 == baseline, c4 = progressive
+                            /*if (scanStart) {
+                                console.log("New header started before old one could finish. Old header:", JSON.stringify(this.scanHeader));
+                            }*/
+                            scanStart = true;
+                            this.scanHeader = [];
+                        } else if (byte === 0xc4 || byte === 0xdb) { // end of image header, c4 = start of huffman table, db = start of quantization table
+                            scanStart = false;
+                        } else if (byte === 0xd9) {
+                            if (!scanStart && this.verifyHeader(this.scanHeader)) {
+                                this.imagePoints.push([jpegStart, this.readStartPos + i + 1]);
+                            } else {
+                                //console.log("Rejected because of invalid header, header:", this.scanHeader.map(val => val.toString(16)));
+                                scanStart = false;
+                                this.scanHeader = [];
+                            }
+                        } else if (scanStart) {
+                            this.scanHeader.push(0xff, byte);
+                        }
                         markerStart = false;
                     }
                 }
 
+                this.scanStart = scanStart;
                 this.markerStart = markerStart;
                 this.jpegStart = jpegStart;
                 this.readStartPos = this.nextPosition;
 
-                let chunkProg = this.readNextChunk();
-
-                if (chunkProg === false || this.cancelProcess) {
-                    this.done(this.imagePoints);
-                } else {
-                    this.progress(chunkProg);
-                }
+                this.readNextChunk();
             });
         }
 
-        readNextChunk() {
-            if (this.readStartPos > this.file.size) {
+        verifyHeader(header: Array<number>) {
+            if (header.length < 5)
                 return false;
+
+            const headerLength = header[0] * 256 + header[1]; // first 2 bytes determine length of the header
+
+            if (header.length === headerLength)
+                return true;
+        }
+
+        readNextChunk() {
+            if (this.readStartPos > this.file.size || this.cancelProcess) {
+                this.done(this.imagePoints);
             } else {
                 const nextPosition = this.readStartPos + READ_BUFFER;
                 const readTo = nextPosition > this.file.size ? undefined : nextPosition;
@@ -111,7 +146,7 @@
                 this.nextPosition = nextPosition;
                 this.fileReader.readAsArrayBuffer(nextSlice);
 
-                return (this.readStartPos / this.file.size) * 100;
+                this.progress(this.readStartPos, this.file.size);
             }
         }
 
@@ -133,35 +168,50 @@
 
                 images.push(URL.createObjectURL(new Blob([buffer], { type: "image/jpeg" })))
 
-                this.progress((i / points.length) * 100);
-                if(this.cancelProcess)
+                this.progress(i, points.length);
+
+                if (this.cancelProcess)
                     break;
             }
 
             return images;
         }
-        cancel(){
+
+        cancel() {
             this.cancelProcess = true;
         }
     }
 
     let extractor: ThumbReader;
-    
-    self.addEventListener("message", (msg:MessageEvent) => {
+
+    self.addEventListener("message", (msg: MessageEvent) => {
         if (msg.data.init) {
-            if(extractor){
+            if (extractor) {
                 extractor.cancel();
             }
 
             extractor = new ThumbReader(msg.data.init);
-            extractor.progress = (progress: number) => self.postMessage({ progress: progress });
+
+            extractor.progress = (position: number, total: number) => {
+                const progress = (position / total) * 100;
+                const text = (position / 1024).toFixed(0) + " kB / " + (total / 1024).toFixed(0) + " kB"
+                self.postMessage({ progress: progress, text: text })
+            };
 
             extractor.extractPoints()
                 .then(imagePoints => {
                     self.postMessage({ status: "Extracting.." })
+                    extractor.progress = (position: number, total: number) => {
+                        const progress = (position / total) * 100;
+                        const text = position + " / " + total;
+                        self.postMessage({ progress: progress, text: text })
+                    };
                     return extractor.extractImages(imagePoints);
                 })
-                .then(images => self.postMessage({ images: images }))
+                .then(images => {
+                    self.postMessage({ images: images });
+                    extractor = null;
+                })
 
             self.postMessage({
                 status: "Parsing"
