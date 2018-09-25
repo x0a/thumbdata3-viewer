@@ -28,11 +28,22 @@ header{
 .image-item{
 	cursor: pointer;
 }
+
+.jumbotron{
+	position: relative;
+}
+
+.progress-text{
+	position: absolute;
+	bottom: 20px;
+	right: 20px;
+
+}
 .progress{
 	height: 3rem;
-	font-size: 1.25rem;
 	background-color: ghostwhite;
 	border: 1px solid #dee2e6;
+	font-size: 1.25rem;
 }
 
 .progress-bar{
