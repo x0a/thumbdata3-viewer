@@ -6,6 +6,7 @@ html(ng-app="thumbdata3App")
 		link(rel="stylesheet", href="https://use.fontawesome.com/releases/v5.0.12/css/all.css", integrity="sha384-G0fIWCsCzJIMAVNQPfjH08cyYaUtMwjJwqiRKxxE/rx96Uroj1BtIQ6MLJuheaO9", crossorigin="anonymous", async)
 		link(rel="stylesheet", href="index.css")
 		meta(name="viewport", content="width=device-width, initial-scale=1, shrink-to-fit=no")
+		meta(charset="utf-8")
 		script(src="index.js")
 
 	body(ng-controller="main")
@@ -30,7 +31,9 @@ html(ng-app="thumbdata3App")
 						|  Select file
 					.progress.d-none
 						.progress-bar.progress-bar-striped.progress-bar-animated
+						
 					input(type="file", id="filePicker").d-none
+				strong.progress-text.d-none
 			.row.justify-content-md-center(id="imageContainer")
 				.col-md-3(id="imageTemplate").d-none
 					.image-item.card

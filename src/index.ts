@@ -35,6 +35,7 @@
 		imageViewerMain: HTMLImageElement;
 		progressContainer: HTMLDivElement;
 		progress: HTMLDivElement;
+		progressText: HTMLDivElement;
 	}
 
 
@@ -50,7 +51,8 @@
 			imageViewerMain: document.querySelector(".image-viewer img"),
 			closeButton: document.querySelector("#closeButton"),
 			progressContainer: document.querySelector(".progress"),
-			progress: document.querySelector(".progress-bar")
+			progress: document.querySelector(".progress-bar"),
+			progressText: document.querySelector(".progress-text")
 		}
 
 		let clearList = () => {
@@ -69,8 +71,12 @@
 				for (let i = 0; i < images.length; i++) {
 					let imageChild = <HTMLDivElement>DOM.imageTemplate.cloneNode(true);
 					let imagePreview: HTMLImageElement = imageChild.querySelector("img");
-
 					imageChild.classList.remove("d-none");
+					imagePreview.addEventListener("error", () => {
+						console.error("Failed to load image");
+						URL.revokeObjectURL(images[i]);
+						//imageChild.remove();
+					})
 					imagePreview.src = images[i];
 
 					imageChild.addEventListener("click", () => {
@@ -88,6 +94,7 @@
 			if (target.files.length === 0) return;
 			let file: File = target.files[0];
 
+			DOM.progressText.classList.remove("d-none");
 			DOM.progressContainer.classList.remove("d-none");
 			DOM.progress.style.width = "0%";
 			DOM.progress.textContent = "Parsing..";
@@ -120,12 +127,15 @@
 
 				if(time - lastUpdate > 200){
 					DOM.progress.style.width = data.progress + "%";
+					DOM.progressText.textContent = data.text;
 					lastUpdate = time;
 				}
 			} else if (data.images) {
+				DOM.progressText.classList.add("d-none");
 				DOM.progressContainer.classList.add("d-none");
 				DOM.fileOpen.classList.remove("d-none");
 				DOM.filePicker.value = null;
+
 				updateList(data.images)
 			}
 		})
