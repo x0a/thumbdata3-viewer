@@ -31,6 +31,7 @@ gulp.task("js", () => {
 	.pipe(sourcemaps.write({includeContent: false, sourceRoot: "https://raw.githubusercontent.com/x0a/thumbdata3-viewer/master/src/"}))
 	.pipe(gulp.dest("dist/"))
 })
+gulp.task("watch", () => gulp.watch(["src/*.ts", "src/*.pug", "src/*.css"], gulp.series("default")))
 gulp.task("update", done => {
 	//copy dist folder into github-pages branch
 	exec("git subtree push --prefix dist origin gh-pages", (err, stdout, stderr) => {
