@@ -102,7 +102,7 @@
                         } else if (byte === 0xc4 || byte === 0xdb) { // end of image header, c4 = start of huffman table, db = start of quantization table
                             scanStart = false;
                         } else if (byte === 0xd9) {
-                            if (!scanStart && this.verifyHeader(this.scanHeader)) {
+                            if (!scanStart && this.validHeader(this.scanHeader)) {
                                 this.imagePoints.push([jpegStart, this.readStartPos + i + 1]);
                             } else {
                                 //console.log("Rejected because of invalid header, header:", this.scanHeader.map(val => val.toString(16)));
@@ -125,14 +125,13 @@
             });
         }
 
-        verifyHeader(header: Array<number>) {
+        validHeader(header: Array<number>) {
             if (header.length < 5)
                 return false;
 
             const headerLength = header[0] * 256 + header[1]; // first 2 bytes determine length of the header
 
-            if (header.length === headerLength)
-                return true;
+            return header.length === headerLength;
         }
 
         readNextChunk() {
@@ -157,7 +156,7 @@
             })
         }
 
-        async extractImages(points: Array<Array<number>>) {
+        async extractImages(points: Array<Array<number>> = this.imagePoints) {
             let extractor = new PromiseReader();
             let images = [];
 
