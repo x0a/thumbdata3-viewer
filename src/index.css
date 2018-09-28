@@ -1,6 +1,12 @@
+html{
+	width: calc(100vw);
+	overflow-x: hidden;
+}
+
 header{
 	margin-bottom: 20px;
 }
+
 .image-viewer{
 	position: fixed;
 	top: 0px;
@@ -22,15 +28,18 @@ header{
 .image-viewer .options-container{
 	padding-top: 10px;
 }
+
 .image-viewer .img-container img{
 	box-shadow: 0px 0px 94px -16px rgba(0,0,0,0.75);
 }
+
 .image-item{
 	cursor: pointer;
 }
 
 .jumbotron{
 	position: relative;
+	word-wrap: break-word;
 }
 
 .progress-text{
@@ -39,6 +48,7 @@ header{
 	right: 20px;
 
 }
+
 .progress{
 	height: 3rem;
 	background-color: ghostwhite;
