@@ -20,125 +20,136 @@
 	SOFTWARE.
 */
 
-((window: Window, document: Document, console: Console) => {
+import './index.css'
 
+interface DOMObject {
+	fileOpen: HTMLButtonElement;
+	filePicker: HTMLInputElement;
+	imageViewer: HTMLDivElement;
+	closeButton: HTMLButtonElement;
+	imageContainer: HTMLDivElement;
+	emptyText: HTMLDivElement;
+	imageTemplate: HTMLDivElement;
+	imageViewerMain: HTMLImageElement;
+	progressContainer: HTMLDivElement;
+	progress: HTMLDivElement;
+	progressText: HTMLDivElement;
+	imageDownload: HTMLAnchorElement;
+}
 
-
-	interface DOMObject {
-		fileOpen: HTMLButtonElement;
-		filePicker: HTMLInputElement;
-		imageViewer: HTMLDivElement;
-		closeButton: HTMLButtonElement;
-		imageContainer: HTMLDivElement;
-		emptyText: HTMLDivElement;
-		imageTemplate: HTMLDivElement;
-		imageViewerMain: HTMLImageElement;
-		progressContainer: HTMLDivElement;
-		progress: HTMLDivElement;
-		progressText: HTMLDivElement;
+window.addEventListener("DOMContentLoaded", () => {
+	let filename = "";
+	
+	let DOM: DOMObject = {
+		fileOpen: document.querySelector("#filePickerOpen"),
+		filePicker: document.querySelector("#filePicker"),
+		imageContainer: document.querySelector("#imageContainer"),
+		emptyText: document.querySelector("#emptyText"),
+		imageTemplate: document.querySelector("#imageTemplate"),
+		imageViewer: document.querySelector(".image-viewer"),
+		imageViewerMain: document.querySelector(".image-viewer img"),
+		closeButton: document.querySelector("#closeButton"),
+		progressContainer: document.querySelector(".progress"),
+		progress: document.querySelector(".progress-bar"),
+		progressText: document.querySelector(".progress-text"),
+		imageDownload: document.querySelector("#imageDownload")
 	}
 
+	let clearList = () => {
+		let children = DOM.imageContainer.querySelectorAll(".image-thumbnail") as NodeListOf<HTMLDivElement>;
+		children.forEach(child => DOM.imageContainer.removeChild(child))
+	}
 
-	window.addEventListener("DOMContentLoaded", () => {
+	let updateList = (images: ArrayBuffer[]) => {
+		clearList();
 
-		let DOM: DOMObject = {
-			fileOpen: document.querySelector("#filePickerOpen"),
-			filePicker: document.querySelector("#filePicker"),
-			imageContainer: document.querySelector("#imageContainer"),
-			emptyText: document.querySelector("#emptyText"),
-			imageTemplate: document.querySelector("#imageTemplate"),
-			imageViewer: document.querySelector(".image-viewer"),
-			imageViewerMain: document.querySelector(".image-viewer img"),
-			closeButton: document.querySelector("#closeButton"),
-			progressContainer: document.querySelector(".progress"),
-			progress: document.querySelector(".progress-bar"),
-			progressText: document.querySelector(".progress-text")
-		}
-
-		let clearList = () => {
-			let children: NodeListOf<HTMLDivElement> = DOM.imageContainer.querySelectorAll(".col-md-3:not(.d-none)");
-			children.forEach(child => DOM.imageContainer.removeChild(child))
-		}
-
-		let updateList = (images: string[]) => {
-			clearList();
-
-			if (images.length === 0) {
-				DOM.emptyText.classList.remove("d-none");
-			} else {
-				DOM.emptyText.classList.add("d-none");
-
-				for (let i = 0; i < images.length; i++) {
-					let imageChild = <HTMLDivElement>DOM.imageTemplate.cloneNode(true);
-					let imagePreview: HTMLImageElement = imageChild.querySelector("img");
-					imageChild.classList.remove("d-none");
-					imagePreview.addEventListener("error", () => {
-						console.error("Failed to load image");
-						URL.revokeObjectURL(images[i]);
-						//imageChild.remove();
-					})
-					imagePreview.src = images[i];
-
-					imageChild.addEventListener("click", () => {
-						DOM.imageViewerMain.src = images[i];
-						DOM.imageViewer.classList.remove("d-none");
-					})
-
-					DOM.imageContainer.appendChild(imageChild);
-				}
-			}
-		}
-
-		DOM.filePicker.addEventListener("change", (event: Event) => {
-			let target = (<HTMLInputElement>event.target);
-			if (target.files.length === 0) return;
-			let file: File = target.files[0];
-
-			DOM.progressText.classList.remove("d-none");
-			DOM.progressContainer.classList.remove("d-none");
-			DOM.progress.style.width = "0%";
-			DOM.progress.textContent = "Parsing..";
+		if (images.length === 0) {
+			DOM.emptyText.classList.remove("d-none");
+		} else {
 			DOM.emptyText.classList.add("d-none");
-			DOM.fileOpen.classList.add("d-none");
 
-			clearList();
+			for (let i = 0; i < images.length; i++) {
+				const image = images[i]
+				const imageURL = URL.createObjectURL(new Blob([image], { type: "image/jpeg" }));
+				const imageChild = DOM.imageTemplate.cloneNode(true) as HTMLDivElement;
+				const imagePreview = imageChild.querySelector("img") as HTMLImageElement;
 
-			worker.postMessage({ init: file });
-		})
+				imageChild.classList.add("image-thumbnail");
+				imageChild.classList.remove("d-none");
 
-		DOM.fileOpen.addEventListener("click", () => {
-			DOM.filePicker.click();
-		})
+				imagePreview.addEventListener("error", () => {
+					console.error("Failed to load image");
+					URL.revokeObjectURL(imageURL);
+					imageChild.remove();
 
-		DOM.closeButton.addEventListener("click", () => {
-			DOM.imageViewer.classList.add("d-none");
-		})
-		
-		let worker = new Worker("ThumbExtractor.js");
-		let lastUpdate = Date.now();
+					if (!DOM.imageContainer.children.length) {
+						DOM.emptyText.classList.remove("d-none");
+					}
+				})
 
-		worker.addEventListener("message", msg => {
-			const data = msg.data;
+				imagePreview.src = imageURL;
 
-			if (data.status) {
-				DOM.progress.textContent = data.status;
-			} else if (data.progress) {
-				let time = Date.now();
+				imageChild.addEventListener("click", () => {
+					DOM.imageViewerMain.src = imageURL;
+					DOM.imageDownload.href = imageURL;
+					DOM.imageDownload.download = filename + "_" + i + ".jpg"
+					DOM.imageViewer.classList.remove("d-none");
+				})
 
-				if(time - lastUpdate > 200){
-					DOM.progress.style.width = data.progress + "%";
-					DOM.progressText.textContent = data.text;
-					lastUpdate = time;
-				}
-			} else if (data.images) {
-				DOM.progressText.classList.add("d-none");
-				DOM.progressContainer.classList.add("d-none");
-				DOM.fileOpen.classList.remove("d-none");
-				DOM.filePicker.value = null;
-
-				updateList(data.images)
+				DOM.imageContainer.appendChild(imageChild);
 			}
-		})
+		}
+	}
 
+	DOM.filePicker.addEventListener("change", (event: Event) => {
+		const target = event.target as HTMLInputElement
+		if (!target.files || !target.files.length) return;
+		let file = target.files[0] as File;
+
+		DOM.progressText.classList.remove("d-none");
+		DOM.progressContainer.classList.remove("d-none");
+		DOM.progress.style.width = "0%";
+		DOM.progress.textContent = "Parsing..";
+		DOM.emptyText.classList.add("d-none");
+		DOM.fileOpen.classList.add("d-none");
+
+		clearList();
+		filename = file.name.replace(/\./, "_");
+		worker.postMessage({ file: file });
 	})
-})(window, document, console)
+
+	DOM.fileOpen.addEventListener("click", () => {
+		DOM.filePicker.click();
+	})
+
+	DOM.closeButton.addEventListener("click", () => {
+		DOM.imageViewer.classList.add("d-none");
+	})
+
+	let worker = new Worker("worker.js");
+	let lastUpdate = Date.now();
+
+	worker.addEventListener("message", msg => {
+		const data = msg.data;
+
+		if (data.status) {
+			DOM.progress.textContent = data.status;
+		} else if (data.progress) {
+			let time = Date.now();
+
+			if (time - lastUpdate > 200) {
+				DOM.progress.style.width = data.progress + "%";
+				DOM.progressText.textContent = data.text;
+				lastUpdate = time;
+			}
+		} else if (data.images) {
+			DOM.progressText.classList.add("d-none");
+			DOM.progressContainer.classList.add("d-none");
+			DOM.fileOpen.classList.remove("d-none");
+			DOM.filePicker.value = "";
+
+			updateList(data.images)
+		}
+	})
+
+})
