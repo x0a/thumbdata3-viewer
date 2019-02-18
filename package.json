@@ -4,6 +4,7 @@
   "description": "Thumbdata3 viewer - Embedded JPEG extractor",
   "scripts": {
     "start": "gulp",
+    "deploy": "git subtree push --prefix dist origin gh-pages",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -24,13 +25,16 @@
   },
   "homepage": "https://github.com/x0a/thumbdata3-viewer#readme",
   "devDependencies": {
-    "gulp": "^4.0.0",
-    "gulp-clean-css": "^3.9.4",
-    "gulp-concat": "^2.6.1",
-    "gulp-pug": "^4.0.1",
-    "gulp-sourcemaps": "^2.6.4",
-    "gulp-typescript": "^4.0.2",
-    "gulp-uglify-es": "^1.0.1",
-    "typescript": "^2.8.3"
+    "@types/readable-stream": "^2.3.0",
+    "css-loader": "^2.1.0",
+    "style-loader": "^0.23.1",
+    "ts-loader": "^5.3.3",
+    "typescript": "^2.8.3",
+    "webpack": "^4.29.4",
+    "html-webpack-plugin": "^3.2.0",
+    "pug-loader": "^2.4.0"
+  },
+  "dependencies": {
+    "readable-stream": "^3.1.1"
   }
 }
