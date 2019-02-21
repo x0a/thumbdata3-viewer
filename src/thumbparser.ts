@@ -126,7 +126,7 @@ class ThumbReader extends Writable {
                         currentImage.scanning = false;
                     } else if (byte === 0xd9) {
                         if (currentImage.isValid()) {
-                            currentImage.end(this.fileOffset + i);
+                            currentImage.end(this.fileOffset + i + 1);
                             this.imageChunks.push(currentImage.getLocation());
                             this.currentImages.pop();
                         }
