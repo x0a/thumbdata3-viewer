@@ -32,15 +32,16 @@ class FileStream extends Readable {
 
     *getSequentialSlices(): IterableIterator<FileSegments> {
         for (let position = 0; position < this.file.size; position += READ_BUFFER) {
-            const end = position + READ_BUFFER;
+            const end = position + READ_BUFFER + 1; // + 1 because y in file.slice(, y) is ignored according to MDN
             this.onProgress(position, this.file.size);
-            yield [position, end < this.file.size ? end : this.file.size]
+            yield [position, end < this.file.size ? end : undefined]
         }
     }
     *getRandomSlices(fileSegments: Array<FileSegments>): IterableIterator<FileSegments> {
-        for (let i = 0; i < fileSegments.length; i++){
-            this.onProgress(i, fileSegments.length);
-            yield fileSegments[i];
+        let i = 0;
+        for(const [x, y] of fileSegments){
+            this.onProgress(i++, fileSegments.length);
+            yield [x, y + 1];
         }
     }
 
@@ -53,9 +54,8 @@ class FileStream extends Readable {
         }
     }
 
-    readSlice(readFrom: number, readTo: number) {
-        const readUntil = readTo > this.file.size ? undefined : readTo;
-        const nextSlice = this.file.slice(readFrom, readUntil);
+    readSlice(readFrom: number, readTo?: number) {
+        const nextSlice = this.file.slice(readFrom, readTo);
 
         this.fileReader.readAsArrayBuffer(nextSlice);
         this.readPos = readTo;
