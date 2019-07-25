@@ -1,9 +1,9 @@
 {
   "name": "thumbdata3-viewer",
-  "version": "1.0.0",
+  "version": "1.0.3",
   "description": "Thumbdata3 viewer - Embedded JPEG extractor",
   "scripts": {
-    "start": "gulp",
+    "build": "webpack",
     "deploy": "git subtree push --prefix dist origin gh-pages",
     "test": "echo \"Error: no test specified\" && exit 1"
   },

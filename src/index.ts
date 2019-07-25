@@ -1,25 +1,3 @@
-/*
-	Copyright (c) 2018 x0a
-
-	Permission is hereby granted, free of charge, to any person obtaining a copy
-	of this software and associated documentation files (the "Software"), to deal
-	in the Software without restriction, including without limitation the rights
-	to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-	copies of the Software, and to permit persons to whom the Software is
-	furnished to do so, subject to the following conditions:
-
-	The above copyright notice and this permission notice shall be included in all
-	copies or substantial portions of the Software.
-
-	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-	IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-	FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-	AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-	LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-	OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-	SOFTWARE.
-*/
-
 import './index.css'
 
 interface DOMObject {
@@ -29,17 +7,22 @@ interface DOMObject {
 	closeButton: HTMLButtonElement;
 	imageContainer: HTMLDivElement;
 	emptyText: HTMLDivElement;
-	imageTemplate: HTMLDivElement;
+	imageTemplate: HTMLTemplateElement;
 	imageViewerMain: HTMLImageElement;
 	progressContainer: HTMLDivElement;
 	progress: HTMLDivElement;
 	progressText: HTMLDivElement;
 	imageDownload: HTMLAnchorElement;
 }
-
+class ImageViewer {
+	imageTemplate: HTMLElement;
+	constructor() {
+		this.imageTemplate = document.querySelector("#imageTemplate")
+	}
+}
 window.addEventListener("DOMContentLoaded", () => {
 	let filename = "";
-	
+
 	let DOM: DOMObject = {
 		fileOpen: document.querySelector("#filePickerOpen"),
 		filePicker: document.querySelector("#filePicker"),
@@ -67,11 +50,11 @@ window.addEventListener("DOMContentLoaded", () => {
 			DOM.emptyText.classList.remove("d-none");
 		} else {
 			DOM.emptyText.classList.add("d-none");
-
+			
 			for (let i = 0; i < images.length; i++) {
 				const image = images[i]
 				const imageURL = URL.createObjectURL(new Blob([image], { type: "image/jpeg" }));
-				const imageChild = DOM.imageTemplate.cloneNode(true) as HTMLDivElement;
+				const imageChild = DOM.imageTemplate.content.cloneNode(true).childNodes[0] as HTMLDivElement;
 				const imagePreview = imageChild.querySelector("img") as HTMLImageElement;
 
 				imageChild.classList.add("image-thumbnail");
@@ -100,6 +83,21 @@ window.addEventListener("DOMContentLoaded", () => {
 			}
 		}
 	}
+	let getWorker = () => {
+		let worker: any;
+		let sendMessage;
+		try {
+			worker = new Worker("worker.js");
+			sendMessage = (message: any) => (worker as any as Worker).postMessage(message);
+		} catch (e) {
+			let script = document.createElement("script");
+			script.setAttribute("src", "worker.js");
+			document.head.appendChild(script);
+			worker = window;
+			sendMessage = (message: any) => (worker as any as Window).postMessage(message, "*");
+		}
+		return [worker, sendMessage];
+	}
 
 	DOM.filePicker.addEventListener("change", (event: Event) => {
 		const target = event.target as HTMLInputElement
@@ -115,7 +113,7 @@ window.addEventListener("DOMContentLoaded", () => {
 
 		clearList();
 		filename = file.name.replace(/\./, "_");
-		worker.postMessage({ file: file });
+		sendMessage({ file: file });
 	})
 
 	DOM.fileOpen.addEventListener("click", () => {
@@ -126,22 +124,16 @@ window.addEventListener("DOMContentLoaded", () => {
 		DOM.imageViewer.classList.add("d-none");
 	})
 
-	let worker = new Worker("worker.js");
-	let lastUpdate = Date.now();
+	let [worker, sendMessage] = getWorker();
 
-	worker.addEventListener("message", msg => {
+	worker.addEventListener("message", (msg: MessageEvent) => {
 		const data = msg.data;
 
 		if (data.status) {
 			DOM.progress.textContent = data.status;
 		} else if (data.progress) {
-			let time = Date.now();
-
-			if (time - lastUpdate > 200) {
-				DOM.progress.style.width = data.progress + "%";
-				DOM.progressText.textContent = data.text;
-				lastUpdate = time;
-			}
+			DOM.progress.style.width = data.progress + "%";
+			DOM.progressText.textContent = data.text;
 		} else if (data.images) {
 			DOM.progressText.classList.add("d-none");
 			DOM.progressContainer.classList.add("d-none");

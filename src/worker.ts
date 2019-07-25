@@ -1,12 +1,9 @@
 import { Readable } from "readable-stream";
 import { ThumbReader, SliceCollector } from "./thumbparser";
+declare var DedicatedWorkerGlobalScope: any;
 
-declare var self: Worker;
 type FileSegments = [number, number];
-
 const READ_BUFFER = 5242880; // 5 MB
-
-
 
 class FileStream extends Readable {
     onProgress: (progress: number, total: number) => void;
@@ -39,7 +36,7 @@ class FileStream extends Readable {
     }
     *getRandomSlices(fileSegments: Array<FileSegments>): IterableIterator<FileSegments> {
         let i = 0;
-        for(const [x, y] of fileSegments){
+        for (const [x, y] of fileSegments) {
             this.onProgress(i++, fileSegments.length);
             yield [x, y + 1];
         }
@@ -62,30 +59,50 @@ class FileStream extends Readable {
     }
 }
 
-
+const onMessage = (fn: (event: MessageEvent, sendResponse: (reply: any) => any) => any) => {
+    self.addEventListener("message", (event: MessageEvent) => {
+        if (typeof DedicatedWorkerGlobalScope !== 'undefined' && self instanceof DedicatedWorkerGlobalScope) {
+            fn(event, reply => (self as any as Worker).postMessage(reply))
+        } else {
+            fn(event, reply => self.postMessage(reply, "*"))
+        }
+    })
+}
 
 let stream: any;
-self.addEventListener("message", (event: MessageEvent) => {
+let lastUpdate = Date.now();
+
+onMessage((event, sendResponse) => {
     const file = event.data.file;
 
     if (file) {
         if (stream) stream.destroy();
 
-        self.postMessage({ status: "Parsing" })
+        sendResponse({ status: "Parsing" })
 
         stream = new FileStream(file, (position: number, total: number) => {
             const progress = (position / total) * 100;
             const text = (position / 1024).toFixed(0) + " kB / " + (total / 1024).toFixed(0) + " kB"
-            self.postMessage({ progress: progress, text: text })
+            const time = Date.now();
+
+            if (time - lastUpdate > 200) {
+                sendResponse({ progress: progress, text: text })
+                lastUpdate = time;
+            }
         })
             .pipe(new ThumbReader(fileSegments => {
-                self.postMessage({ status: "Extracting.." })
+                sendResponse({ status: "Extracting.." })
                 stream = new FileStream(file, (position: number, total: number) => {
                     const progress = (position / total) * 100;
                     const text = "Image " + position + " / " + total;
-                    self.postMessage({ progress: progress, text: text })
+                    const time = Date.now();
+
+                    if (time - lastUpdate > 200) {
+                        sendResponse({ progress: progress, text: text })
+                        lastUpdate = time;
+                    }
                 }, fileSegments)
-                stream.pipe(new SliceCollector(images => self.postMessage({ images: images })))
+                stream.pipe(new SliceCollector(images => sendResponse({ images: images })))
             }))
 
     }

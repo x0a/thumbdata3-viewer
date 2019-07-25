@@ -141,7 +141,7 @@ class ThumbReader extends Writable {
             }
         }
 
-        this.fileOffset += chunk.byteLength
+        this.fileOffset += chunk.byteLength - 1
         this.markerStart = markerStart;
         this.readingImage = readingImage;
 
