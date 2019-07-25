@@ -86,7 +86,10 @@ window.addEventListener("DOMContentLoaded", () => {
 	let getWorker = () => {
 		let worker: any;
 		let sendMessage;
+
 		try {
+			if(location.protocol === "file:") throw "Nope";
+			
 			worker = new Worker("worker.js");
 			sendMessage = (message: any) => (worker as any as Worker).postMessage(message);
 		} catch (e) {
@@ -96,6 +99,7 @@ window.addEventListener("DOMContentLoaded", () => {
 			worker = window;
 			sendMessage = (message: any) => (worker as any as Window).postMessage(message, "*");
 		}
+
 		return [worker, sendMessage];
 	}
 
