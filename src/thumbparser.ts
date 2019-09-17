@@ -22,7 +22,7 @@
 
 import { Writable } from "readable-stream";
 
-type noop = () => void;
+type Noop = () => void;
 type FileSlice = [number, number];
 
 class Image {
@@ -66,8 +66,6 @@ class Image {
 }
 
 class ThumbReader extends Writable {
-    // *** Writable stream that consums file stream and returns list of file segments */
-
     fileOffset: number;
     markerStart: boolean;
     readingImage: boolean;
@@ -75,6 +73,7 @@ class ThumbReader extends Writable {
     imageChunks: Array<FileSlice>;
     onChunks: (imageChunks: Array<FileSlice>) => void;
 
+     //** Writable stream that consumes file stream and returns array of file segments */
     constructor(onChunks: ThumbReader["onChunks"]) {
         super();
 
@@ -98,7 +97,7 @@ class ThumbReader extends Writable {
         this.currentImages.push(image);
         return image;
     }
-    _write(chunk: ArrayBuffer, _: string, next: noop) {
+    _write(chunk: ArrayBuffer, _: string, next: Noop) {
         const data = new Uint8Array(chunk);
 
         let markerStart = this.markerStart;
@@ -147,31 +146,30 @@ class ThumbReader extends Writable {
 
         next();
     }
-    _final(done: noop) {
+    _final(done: Noop) {
         this.onChunks(this.imageChunks);
         done();
     }
 }
 class SliceCollector extends Writable {
-    //*** Writable stream that collects binary chunks as array and sends them to the callback provided */
-    
     slices: ArrayBuffer[];
     onSlices: (chunks: ArrayBuffer[]) => void;
 
+    //*** Writable stream that collects binary chunks as array and sends them to the callback provided */
     constructor(onSlices: SliceCollector["onSlices"]) {
         super();
         this.onSlices = onSlices;
         this.slices = [];
     }
-    _write(chunk: ArrayBuffer, _: string, next: noop) {
+    _write(chunk: ArrayBuffer, _: string, next: Noop) {
         this.slices.push(chunk);
         next();
     }
-    _final(done: noop) {
+    _final(done: Noop) {
         this.onSlices(this.slices);
         done();
     }
 }
 
-export { ThumbReader, SliceCollector }
+export { ThumbReader, SliceCollector, FileSlice }
 export default ThumbReader;

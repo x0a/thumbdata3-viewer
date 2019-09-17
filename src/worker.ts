@@ -1,18 +1,18 @@
-import { Readable } from "readable-stream";
-import { ThumbReader, SliceCollector } from "./thumbparser";
 declare var DedicatedWorkerGlobalScope: any;
 
-type FileSegments = [number, number];
+import { Readable } from "readable-stream";
+import { ThumbReader, SliceCollector, FileSlice } from "./thumbparser";
+
 const READ_BUFFER = 5242880; // 5 MB
 
 class FileStream extends Readable {
-    onProgress: (progress: number, total: number) => void;
     fileReader: FileReader
     readPos: number;
     file: File;
-    chunks: IterableIterator<FileSegments>
+    chunks: IterableIterator<FileSlice>
+    onProgress: (progress: number, total: number) => void;
     /** Converts FileReader into readable stream */
-    constructor(file: File, onProgress: (progress: number, total: number) => void, fileSegments?: Array<FileSegments>) {
+    constructor(file: File, onProgress: (progress: number, total: number) => void, fileSegments?: Array<FileSlice>) {
         super();
 
         this.fileReader = new FileReader();
@@ -27,14 +27,14 @@ class FileStream extends Readable {
         this.chunks = fileSegments ? this.getRandomSlices(fileSegments) : this.getSequentialSlices();
     }
 
-    *getSequentialSlices(): IterableIterator<FileSegments> {
+    *getSequentialSlices(): IterableIterator<FileSlice> {
         for (let position = 0; position < this.file.size; position += READ_BUFFER) {
             const end = position + READ_BUFFER + 1; // + 1 because y in file.slice(, y) is ignored according to MDN
             this.onProgress(position, this.file.size);
             yield [position, end < this.file.size ? end : undefined]
         }
     }
-    *getRandomSlices(fileSegments: Array<FileSegments>): IterableIterator<FileSegments> {
+    *getRandomSlices(fileSegments: Array<FileSlice>): IterableIterator<FileSlice> {
         let i = 0;
         for (const [x, y] of fileSegments) {
             this.onProgress(i++, fileSegments.length);
@@ -70,40 +70,34 @@ const onMessage = (fn: (event: MessageEvent, sendResponse: (reply: any) => any) 
 }
 
 let stream: any;
-let lastUpdate = Date.now();
 
 onMessage((event, sendResponse) => {
     const file = event.data.file;
 
-    if (file) {
-        if (stream) stream.destroy();
+    if (!file) return;
+    if (stream) stream.destroy();
 
-        sendResponse({ status: "Parsing" })
+    let lastUpdate = Date.now();
 
-        stream = new FileStream(file, (position: number, total: number) => {
-            const progress = (position / total) * 100;
-            const text = (position / 1024).toFixed(0) + " kB / " + (total / 1024).toFixed(0) + " kB"
-            const time = Date.now();
+    const onProgress = (position: number, total: number, file: boolean = false) => {
+        const progress = (position / total) * 100;
+        const text = file
+            ? (position / 1024).toFixed(0) + " kB / " + (total / 1024).toFixed(0) + " kB"
+            : "Image " + position + " / " + total;
+        const time = Date.now();
 
-            if (time - lastUpdate > 200) {
-                sendResponse({ progress: progress, text: text })
-                lastUpdate = time;
-            }
-        })
-            .pipe(new ThumbReader(fileSegments => {
-                sendResponse({ status: "Extracting.." })
-                stream = new FileStream(file, (position: number, total: number) => {
-                    const progress = (position / total) * 100;
-                    const text = "Image " + position + " / " + total;
-                    const time = Date.now();
-
-                    if (time - lastUpdate > 200) {
-                        sendResponse({ progress: progress, text: text })
-                        lastUpdate = time;
-                    }
-                }, fileSegments)
-                stream.pipe(new SliceCollector(images => sendResponse({ images: images })))
-            }))
-
+        if (time - lastUpdate > 200) {
+            sendResponse({ progress, text })
+            lastUpdate = time;
+        }
     }
+
+    sendResponse({ status: "Parsing" })
+
+    stream = new FileStream(file, (position, total) => onProgress(position, total, true))
+        .pipe(new ThumbReader(fileSegments => {
+            sendResponse({ status: "Extracting.." })
+            stream = new FileStream(file, (position, total) => onProgress(position, total), fileSegments)
+                .pipe(new SliceCollector(images => sendResponse({ images: images })))
+        }))
 })
