@@ -1,3 +1,4 @@
+import * as JSZip from "jszip";
 import './index.css'
 
 interface DOMObject {
@@ -7,6 +8,11 @@ interface DOMObject {
 	progress: HTMLDivElement;
 	progressText: HTMLDivElement;
 }
+interface Image {
+	url: string,
+	buffer: ArrayBuffer
+}
+
 class ImageViewer {
 	imageTemplate: HTMLTemplateElement;
 	imageContainer: HTMLDivElement;
@@ -19,8 +25,11 @@ class ImageViewer {
 	nextButton: HTMLButtonElement;
 	mainBrowser: HTMLDivElement;
 	imageDescription: HTMLDivElement;
+	zipButton: HTMLButtonElement;
+	zipDownload: HTMLAnchorElement;
+	progressText: HTMLSpanElement;
 	filename: string;
-	images: Array<string>;
+	images: Array<Image>;
 	currentIndex: number;
 	unhookNavigation: () => any;
 
@@ -36,6 +45,10 @@ class ImageViewer {
 		this.nextButton = document.querySelector("#nextButton");
 		this.mainBrowser = document.querySelector(".main-browser");
 		this.imageDescription = document.querySelector(".image-description");
+		this.zipButton = document.querySelector("#zipButton");
+		this.zipDownload = document.querySelector(".zip-download");
+
+		this.progressText = document.querySelector(".progress-text");
 		this.filename = "";
 		this.images = [];
 		this.currentIndex = -1;
@@ -44,6 +57,7 @@ class ImageViewer {
 		this.closeButton.addEventListener("click", this.close.bind(this));
 		this.prevButton.addEventListener("click", this.prevImage.bind(this));
 		this.nextButton.addEventListener("click", this.nextImage.bind(this));
+		this.zipButton.addEventListener("click", this.downloadZIP.bind(this));
 	}
 	hookNavigation() {
 		const navHook = (event: KeyboardEvent) => {
@@ -60,10 +74,14 @@ class ImageViewer {
 		window.addEventListener("keydown", navHook)
 		return () => window.removeEventListener("keydown", navHook);
 	}
-	createImageURL(image: ArrayBuffer) {
-		return URL.createObjectURL(new Blob([image], { type: "image/jpeg" }));
+	createImageItem(buffer: ArrayBuffer): Image {
+		const blob = new Blob([buffer], { type: "image/jpeg" });
+		return {
+			url: URL.createObjectURL(blob),
+			buffer
+		}
 	}
-	createImage(imageURL: string) {
+	createImage(image: Image) {
 		const imageChild = this.imageTemplate.content.cloneNode(true).childNodes[0] as HTMLDivElement;
 		const imagePreview = imageChild.querySelector("img") as HTMLImageElement;
 
@@ -72,23 +90,24 @@ class ImageViewer {
 
 		imagePreview.addEventListener("error", () => {
 			console.error("Failed to load image");
-			URL.revokeObjectURL(imageURL);
-			this.images.splice(this.images.indexOf(imageURL), 1);
+			URL.revokeObjectURL(image.url);
+			this.images.splice(this.images.findIndex(({ url }) => image.url === url), 1);
 			requestAnimationFrame(() => this.updateImages());
 		})
 
-		imagePreview.src = imageURL;
+		imagePreview.src = image.url;
 		return imageChild;
 	}
 	update(images: Array<ArrayBuffer>) {
-		this.images = images.map(buffer => this.createImageURL(buffer));
+		this.images = images.map(buffer => this.createImageItem(buffer));
 		this.updateImages();
 	}
 	clear() {
 		this.clearImages();
-		this.images.forEach(url => URL.revokeObjectURL(url));
+		this.images.forEach(({ url }) => URL.revokeObjectURL(url));
 		this.images = [];
 		this.emptyText.classList.remove("d-none");
+		this.zipButton.classList.add("d-none");
 	}
 	clearImages() {
 		const children = this.imageContainer.querySelectorAll(".image-thumbnail") as NodeListOf<HTMLDivElement>;
@@ -104,6 +123,7 @@ class ImageViewer {
 			return;
 		} else {
 			this.emptyText.classList.add("d-none");
+			this.zipButton.classList.remove("d-none");
 		}
 
 		for (let i = 0; i < this.images.length; i++) {
@@ -112,8 +132,38 @@ class ImageViewer {
 			this.imageContainer.appendChild(image);
 		}
 	}
+	generateZIP(): Promise<Blob> {
+		const archive = new JSZip();
+
+		this.zipButton.disabled = true;
+		this.progressText.textContent = "0%";
+		this.progressText.classList.remove("d-none");
+
+		for (let i = 0; i < this.images.length; i++) {
+			const image = this.images[i];
+			archive.file((i + 1) + ".jpg", image.buffer);
+		}
+		return archive.generateAsync({ type: "blob" }, ({ percent }) => {
+			this.progressText.textContent = "Zipping " + percent.toFixed(0) + "%";
+		})
+			.then(blob => {
+				this.progressText.classList.add("d-none");
+				this.zipButton.disabled = false;
+				return blob;
+			})
+	}
+	downloadZIP() {
+		this.generateZIP()
+			.then(blob => {
+				const url = URL.createObjectURL(blob);
+				const download = this.filename + ".zip";
+				this.zipDownload.download = download;
+				this.zipDownload.href = url;
+				this.zipDownload.click();
+			})
+	}
 	showImage(index: number) {
-		const imageURL = this.images[index];
+		const imageURL = this.images[index].url;
 		const downloadURL = this.filename + "_" + index + ".jpg";
 
 		this.mainImage.src = imageURL;
@@ -124,7 +174,7 @@ class ImageViewer {
 		this.mainBrowser.classList.add("d-none");
 		this.currentIndex = index;
 		this.imageDescription.textContent = `Image ${index + 1} of ${this.images.length}`;
-		
+
 		if (index === 0) {
 			this.prevButton.setAttribute("disabled", "true");
 		} else {

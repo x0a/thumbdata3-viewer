@@ -7,6 +7,7 @@ html
 		link(rel="canonical", href="https://x0a.github.io/thumbdata3-viewer/")
 		meta(name="viewport", content="width=device-width, initial-scale=1, shrink-to-fit=no")
 		meta(name="description", content="Fully client-side HTML5 JPEG extractor. Uses JPEG magic numbers in files to extract JPEGs from any non-encrypted file.")
+		meta(name="keywords", content="thumbdata3,thumbdata4,thumbdata5,thumbdata6,online,extract")
 		meta(charset="utf-8")
 		template#imageTemplate
 			.col-md-3.d-none
@@ -28,14 +29,21 @@ html
 				.lead Embedded JPEG extractor
 				.my-4 This is a fully client-side JPEG extractor.
 					|  It works by finding JPEG-markers in files, and can theoretically be used to extract JPEGs from any non-encrypted file, including other JPEGs.
-				.lead
+				
+				.lead.d-flex.justify-content-between
 					button.btn.btn-primary.btn-lg(type="button", id="filePickerOpen") 
 						i.far.fa-folder-open
 						|  Select file
-					.progress.d-none
+					.progress.d-none.flex-grow-1
 						.progress-bar.progress-bar-striped.progress-bar-animated
 						
 					input(type="file", id="filePicker").d-none
+					.download-zip
+						a.d-none.zip-download
+						button.btn.btn-warning.btn-lg.d-none(type="button", id="zipButton", title="Download all images as zip archive")
+							i.fas.fa-file-archive
+							|  Download all
+				
 				strong.progress-text.d-none
 			.row.justify-content-md-center#imageContainer
 				.col-md-4#emptyText.text-center
