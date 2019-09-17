@@ -1,64 +1,80 @@
-html{
-	width: calc(100vw);
-	overflow-x: hidden;
+html {
+    width: calc(100vw);
+    overflow-x: hidden;
 }
 
-header{
-	margin-bottom: 20px;
+header {
+    margin-bottom: 20px;
 }
 
-.image-viewer{
-	position: fixed;
-	top: 0px;
-	left: 0px;
-	width: 100vw;
-	height: 100vh;
-	background-color: #3d3d3d;
-	justify-content: center;
+.image-viewer {
+    display: flex;
+    align-items: stretch;
+    flex-direction: column;
+    position: fixed;
+    top: 0px;
+    left: 0px;
+    width: 100vw;
+    height: 100vh;
+    background-color: #2c2f34;
+}
+
+.image-viewer .img-container {
+    display: flex;
+    flex-grow: 1;
+    justify-content: center;
+    align-items: center;
+}
+
+.image-viewer .img-container img {
+    object-fit: contain;
+    max-height: calc(90vh - 48px);
+    max-width: 90vw;
+}
+
+.image-viewer-options {
+    display: flex;
+	padding: 15px 15px 5px 15px;
 	align-items: center;
-	display: flex;
+    justify-content: space-between;
 }
 
-.image-viewer .img-container img{
-	object-fit: contain;
-	max-height: calc(90vh - 48px);
-	max-width: 90vw;
+.image-viewer .img-container img {
+    box-shadow: 0px 0px 94px -16px rgba(0, 0, 0, 0.75);
 }
 
-.image-viewer .options-container{
-	padding-top: 10px;
+.image-description {
+    font-weight: bold;
+    color: whitesmoke;
 }
 
-.image-viewer .img-container img{
-	box-shadow: 0px 0px 94px -16px rgba(0,0,0,0.75);
+.image-item {
+    cursor: pointer;
 }
 
-.image-item{
-	cursor: pointer;
+.jumbotron {
+    position: relative;
+    word-wrap: break-word;
 }
 
-.jumbotron{
-	position: relative;
-	word-wrap: break-word;
-}
-
-.progress-text{
-	position: absolute;
-	bottom: 20px;
-	right: 20px;
+.progress-text {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
 
 }
 
-.progress{
-	height: 3rem;
-	background-color: ghostwhite;
-	border: 1px solid #dee2e6;
-	font-size: 1.25rem;
+.progress {
+    height: 3rem;
+    background-color: ghostwhite;
+    border: 1px solid #dee2e6;
+    font-size: 1.25rem;
 }
 
-.progress-bar{
-	text-shadow: black 1px 1px 4px;
+.progress-bar {
+    text-shadow: black 1px 1px 4px;
 }
-body{
-	margin-bottom: 40px;
+
+body {
+    margin-bottom: 40px;
 }
