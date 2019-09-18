@@ -45,10 +45,10 @@ class ImageViewer {
 		this.nextButton = document.querySelector("#nextButton");
 		this.mainBrowser = document.querySelector(".main-browser");
 		this.imageDescription = document.querySelector(".image-description");
-		this.zipButton = document.querySelector("#zipButton");
+		this.zipButton = document.querySelector("#zipBtn");
 		this.zipDownload = document.querySelector(".zip-download");
-
 		this.progressText = document.querySelector(".progress-text");
+
 		this.filename = "";
 		this.images = [];
 		this.currentIndex = -1;
@@ -59,29 +59,17 @@ class ImageViewer {
 		this.nextButton.addEventListener("click", this.nextImage.bind(this));
 		this.zipButton.addEventListener("click", this.downloadZIP.bind(this));
 	}
-	hookNavigation() {
-		const navHook = (event: KeyboardEvent) => {
-			if (this.currentIndex === -1) return;
-
-			if (event.keyCode === 37) { // Left key
-				this.prevImage();
-			} else if (event.keyCode === 39) { // Right key
-				this.nextImage();
-			} else if (event.keyCode === 27) { // Esc key
-				this.close();
+	setImages(images: Array<ArrayBuffer>) {
+		this.images = images.map(buffer => {
+			const blob = new Blob([buffer], { type: "image/jpeg" });
+			return {
+				url: URL.createObjectURL(blob),
+				buffer
 			}
-		}
-		window.addEventListener("keydown", navHook)
-		return () => window.removeEventListener("keydown", navHook);
+		});
+		this.renderPage();
 	}
-	createImageItem(buffer: ArrayBuffer): Image {
-		const blob = new Blob([buffer], { type: "image/jpeg" });
-		return {
-			url: URL.createObjectURL(blob),
-			buffer
-		}
-	}
-	createImage(image: Image) {
+	renderImage(image: Image) {
 		const imageChild = this.imageTemplate.content.cloneNode(true).childNodes[0] as HTMLDivElement;
 		const imagePreview = imageChild.querySelector("img") as HTMLImageElement;
 
@@ -92,34 +80,18 @@ class ImageViewer {
 			console.error("Failed to load image");
 			URL.revokeObjectURL(image.url);
 			this.images.splice(this.images.findIndex(({ url }) => image.url === url), 1);
-			requestAnimationFrame(() => this.updateImages());
+			requestAnimationFrame(() => this.renderPage());
 		})
 
 		imagePreview.src = image.url;
 		return imageChild;
 	}
-	update(images: Array<ArrayBuffer>) {
-		this.images = images.map(buffer => this.createImageItem(buffer));
-		this.updateImages();
-	}
-	clear() {
-		this.clearImages();
-		this.images.forEach(({ url }) => URL.revokeObjectURL(url));
-		this.images = [];
-		this.emptyText.classList.remove("d-none");
-		this.zipButton.classList.add("d-none");
-	}
-	clearImages() {
-		const children = this.imageContainer.querySelectorAll(".image-thumbnail") as NodeListOf<HTMLDivElement>;
-		for (const child of children) {
-			this.imageContainer.removeChild(child);
-		}
-	}
-	updateImages() {
-		this.clearImages();
+	renderPage() {
+		this.emptyImages();
 
 		if (!this.images.length) {
 			this.emptyText.classList.remove("d-none");
+			this.zipButton.classList.add("d-none");
 			return;
 		} else {
 			this.emptyText.classList.add("d-none");
@@ -127,10 +99,62 @@ class ImageViewer {
 		}
 
 		for (let i = 0; i < this.images.length; i++) {
-			const image = this.createImage(this.images[i]);
+			const image = this.renderImage(this.images[i]);
 			image.addEventListener("click", this.showImage.bind(this, i));
 			this.imageContainer.appendChild(image);
 		}
+	}
+	emptyImages() {
+		this.imageContainer.querySelectorAll(".image-thumbnail")
+			.forEach(child => this.imageContainer.removeChild(child))
+	}
+	showImage(index: number) {
+		const imageURL = this.images[index].url;
+		const downloadURL = this.filename + "_" + index + ".jpg";
+
+		this.mainImage.src = imageURL;
+		this.mainImageDownload.href = imageURL;
+		this.mainImageDownload.download = downloadURL;
+		this.mainImageDownload.title = "Download " + downloadURL;
+		this.imageViewer.classList.remove("d-none");
+		this.mainBrowser.classList.add("d-none");
+		this.imageDescription.textContent = `Image ${index + 1} of ${this.images.length}`;
+
+		this.currentIndex = index;
+
+		if (index === 0) {
+			this.prevButton.setAttribute("disabled", "true");
+		} else {
+			this.prevButton.removeAttribute("disabled");
+		}
+
+		if (index === this.images.length - 1) {
+			this.nextButton.setAttribute("disabled", "true");
+		} else {
+			this.nextButton.removeAttribute("disabled");
+		}
+	}
+	nextImage() {
+		const index = this.currentIndex + 1;
+		if (index >= this.images.length) return;
+		this.showImage(index);
+	}
+	prevImage() {
+		const index = this.currentIndex - 1;
+		if (index < 0) return;
+		this.showImage(index);
+	}
+	close() {
+		this.currentIndex = -1;
+		this.imageViewer.classList.add("d-none");
+		this.mainBrowser.classList.remove("d-none");
+	}
+	clear() {
+		this.emptyImages();
+		this.images.forEach(({ url }) => URL.revokeObjectURL(url));
+		this.images = [];
+		this.emptyText.classList.remove("d-none");
+		this.zipButton.classList.add("d-none");
 	}
 	generateZIP(): Promise<Blob> {
 		const archive = new JSZip();
@@ -162,52 +186,28 @@ class ImageViewer {
 				this.zipDownload.click();
 			})
 	}
-	showImage(index: number) {
-		const imageURL = this.images[index].url;
-		const downloadURL = this.filename + "_" + index + ".jpg";
 
-		this.mainImage.src = imageURL;
-		this.mainImageDownload.href = imageURL;
-		this.mainImageDownload.download = downloadURL;
-		this.mainImageDownload.title = "Download " + downloadURL;
-		this.imageViewer.classList.remove("d-none");
-		this.mainBrowser.classList.add("d-none");
-		this.currentIndex = index;
-		this.imageDescription.textContent = `Image ${index + 1} of ${this.images.length}`;
+	hookNavigation() {
+		const navHook = (event: KeyboardEvent) => {
+			if (this.currentIndex === -1) return;
 
-		if (index === 0) {
-			this.prevButton.setAttribute("disabled", "true");
-		} else {
-			this.prevButton.removeAttribute("disabled");
+			if (event.keyCode === 37) { // Left key
+				this.prevImage();
+			} else if (event.keyCode === 39) { // Right key
+				this.nextImage();
+			} else if (event.keyCode === 27) { // Esc key
+				this.close();
+			}
 		}
-
-		if (index === this.images.length - 1) {
-			this.nextButton.setAttribute("disabled", "true");
-		} else {
-			this.nextButton.removeAttribute("disabled");
-		}
-	}
-	nextImage() {
-		const index = this.currentIndex + 1;
-		if (index >= this.images.length) return;
-		this.showImage(index);
-	}
-	prevImage() {
-		const index = this.currentIndex - 1;
-		if (index < 0) return;
-		this.showImage(index);
-	}
-	close() {
-		this.currentIndex = -1;
-		this.imageViewer.classList.add("d-none");
-		this.mainBrowser.classList.remove("d-none");
+		window.addEventListener("keydown", navHook)
+		return () => window.removeEventListener("keydown", navHook);
 	}
 }
 window.addEventListener("DOMContentLoaded", () => {
 	const imageViewer = new ImageViewer();
 
 	const DOM: DOMObject = {
-		fileOpen: document.querySelector("#filePickerOpen"),
+		fileOpen: document.querySelector("#filePickerBtn"),
 		filePicker: document.querySelector("#filePicker"),
 		progressContainer: document.querySelector(".progress"),
 		progress: document.querySelector(".progress-bar"),
@@ -259,20 +259,20 @@ window.addEventListener("DOMContentLoaded", () => {
 
 	const [worker, sendMessage] = getWorker();
 
-	worker.addEventListener("message", (msg: MessageEvent) => {
-		const data = msg.data;
+	worker.addEventListener("message", (event: MessageEvent) => {
+		const message = event.data;
 
-		if (data.status) {
-			DOM.progress.textContent = data.status;
-		} else if (data.progress) {
-			DOM.progress.style.width = data.progress + "%";
-			DOM.progressText.textContent = data.text;
-		} else if (data.images) {
+		if (message.status) {
+			DOM.progress.textContent = message.status;
+		} else if (message.progress) {
+			DOM.progress.style.width = message.progress + "%";
+			DOM.progressText.textContent = message.text;
+		} else if (message.images) {
 			DOM.progressText.classList.add("d-none");
 			DOM.progressContainer.classList.add("d-none");
 			DOM.fileOpen.classList.remove("d-none");
 			DOM.filePicker.value = "";
-			imageViewer.update(data.images)
+			imageViewer.setImages(message.images)
 		}
 	})
 

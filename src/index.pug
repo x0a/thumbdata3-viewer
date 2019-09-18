@@ -7,7 +7,7 @@ html
 		link(rel="canonical", href="https://x0a.github.io/thumbdata3-viewer/")
 		meta(name="viewport", content="width=device-width, initial-scale=1, shrink-to-fit=no")
 		meta(name="description", content="Fully client-side HTML5 JPEG extractor. Uses JPEG magic numbers in files to extract JPEGs from any non-encrypted file.")
-		meta(name="keywords", content="thumbdata3,thumbdata4,thumbdata5,thumbdata6,online,extract")
+		meta(name="keywords", content="thumbdata3,thumbdata4,thumbdata5,thumbdata6,online,extract,export")
 		meta(charset="utf-8")
 		template#imageTemplate
 			.col-md-3.d-none
@@ -21,7 +21,7 @@ html
 					ul.navbar-nav.mr-auto
 						li.nav-item
 							a.nav-link(href="https://github.com/x0a/thumbdata3-viewer/tree/master/src")
-								.i.fab.fa-github
+								i.fab.fa-github
 								|  Source
 		.container.main-browser
 			.jumbotron
@@ -31,16 +31,16 @@ html
 					|  It works by finding JPEG-markers in files, and can theoretically be used to extract JPEGs from any non-encrypted file, including other JPEGs.
 				
 				.lead.d-flex.justify-content-between
-					button.btn.btn-primary.btn-lg(type="button", id="filePickerOpen") 
+					button.btn.btn-primary.btn-lg#filePickerBtn(type="button") 
 						i.far.fa-folder-open
 						|  Select file
 					.progress.d-none.flex-grow-1
 						.progress-bar.progress-bar-striped.progress-bar-animated
 						
-					input(type="file", id="filePicker").d-none
+					input.d-none#filePicker(type="file")
 					.download-zip
 						a.d-none.zip-download
-						button.btn.btn-warning.btn-lg.d-none(type="button", id="zipButton", title="Download all images as zip archive")
+						button.btn.btn-warning.btn-lg.d-none#zipBtn(type="button", title="Download all images as zip archive")
 							i.fas.fa-file-archive
 							|  Download all
 				
@@ -50,17 +50,17 @@ html
 					h3.text-muted No images.
 		.image-viewer.d-none
 			.image-viewer-options
-				button.btn.btn-secondary.d-inline-block.mr-1(type="button", id="closeButton")
+				button.btn.btn-secondary.d-inline-block.mr-1#closeButton(type="button")
 					i.fas.fa-arrow-circle-left
 					|  Back
 				.image-description
 					| Image 1 of 1
 				.image-viewer-nav
-					button.btn.btn-outline-info.d-inline-block.mr-1(type="button", id="prevButton", disabled="true", title="Previous image")
+					button.btn.btn-outline-info.d-inline-block.mr-1#prevButton(type="button" disabled="true", title="Previous image")
 						i.fas.fa-chevron-left
-					button.btn.btn-outline-info.d-inline-block(type="button", id="nextButton", disabled="true", title="Next image") 
+					button.btn.btn-outline-info.d-inline-block#nextButton(type="button", disabled="true", title="Next image") 
 						i.fas.fa-chevron-right
-			.img-container.text-center
+			.image-viewer-main
 				a#imageDownload(title="Download image")
 					img(src="")
 

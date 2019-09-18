@@ -19,14 +19,14 @@ header {
     background-color: #2c2f34;
 }
 
-.image-viewer .img-container {
+.image-viewer .image-viewer-main {
     display: flex;
     flex-grow: 1;
     justify-content: center;
     align-items: center;
 }
 
-.image-viewer .img-container img {
+.image-viewer .image-viewer-main img {
     object-fit: contain;
     max-height: calc(90vh - 48px);
     max-width: 90vw;
@@ -39,7 +39,7 @@ header {
     justify-content: space-between;
 }
 
-.image-viewer .img-container img {
+.image-viewer .image-viewer-main img {
     box-shadow: 0px 0px 94px -16px rgba(0, 0, 0, 0.75);
 }
 
