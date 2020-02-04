@@ -12,7 +12,7 @@ npm install
 ```
 
 ## Build
-For active development run `npm run watch`
-Then open `./dist/index.html`, or run `npx serve ./dist` and open `http://localhost:5000`, refreshing as needed.
+For active development run `npm run watch`, which will start webpack in watch mode.
+Then run `npx serve ./dist` and open `http://localhost:5000`, refreshing as needed. You can also open `./dist/index.html` directly in your browser and refresh as needed.
 
 For a final build, run `npm run build`. Files in `./dist` will be ready for distribution
