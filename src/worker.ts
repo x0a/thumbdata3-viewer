@@ -1,11 +1,11 @@
 declare var DedicatedWorkerGlobalScope: any;
 
-import { Readable } from "readable-stream";
+import { Stream } from "readable-stream";
 import { ThumbReader, SliceCollector, FileSlice } from "./thumbparser";
 
 const READ_BUFFER = 5242880; // 5 MB
 
-class FileStream extends Readable {
+class FileStream extends Stream {
     fileReader: FileReader
     readPos: number;
     file: File;
@@ -14,7 +14,7 @@ class FileStream extends Readable {
     /** Converts FileReader into readable stream */
     constructor(file: File, onProgress: (progress: number, total: number) => void, fileSegments?: Array<FileSlice>) {
         super();
-
+        
         this.fileReader = new FileReader();
         this.fileReader.addEventListener("loadend", () => {
             if (!this.destroyed) {
@@ -93,7 +93,7 @@ onMessage((event, sendResponse) => {
     }
 
     sendResponse({ status: "Parsing" })
-
+    
     stream = new FileStream(file, (position, total) => onProgress(position, total, true))
         .pipe(new ThumbReader(fileSegments => {
             sendResponse({ status: "Extracting.." })

@@ -167,10 +167,10 @@ class ImageViewer {
 			const image = this.images[i];
 			archive.file((i + 1) + ".jpg", image.buffer);
 		}
-		return archive.generateAsync({ type: "blob" }, ({ percent }) => {
+		return archive.generateAsync({ type: "blob" }, ({ percent }: { percent: number }) => {
 			this.progressText.textContent = "Zipping " + percent.toFixed(0) + "%";
 		})
-			.then(blob => {
+			.then((blob: Blob) => {
 				this.progressText.classList.add("d-none");
 				this.zipButton.disabled = false;
 				return blob;
@@ -240,7 +240,7 @@ window.addEventListener("DOMContentLoaded", () => {
 	DOM.filePicker.addEventListener("change", (event: Event) => {
 		const target = event.target as HTMLInputElement
 		if (!target.files || !target.files.length) return;
-		let file = target.files[0] as File;
+		const file = target.files[0] as File;
 
 		DOM.progressText.classList.remove("d-none");
 		DOM.progressContainer.classList.remove("d-none");
@@ -250,7 +250,7 @@ window.addEventListener("DOMContentLoaded", () => {
 
 		imageViewer.clear()
 		imageViewer.filename = file.name.replace(/\./, "_");
-		sendMessage({ file: file });
+		sendMessage({ file });
 	})
 
 	DOM.fileOpen.addEventListener("click", () => {
